@@ -586,26 +586,6 @@
     .ctx-widget .cw-weather { text-align: left; }
   }
 
-  .trans-card {
-    display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start;
-    padding: 12px 14px;
-    background: var(--bg-soft);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-m);
-  }
-  .trans-card .tc-icon {
-    width: 38px; height: 38px; border-radius: 11px;
-    display: grid; place-items: center;
-    background: linear-gradient(135deg, #2a62c9, #0e7c66);
-    color: #fff; font-size: 17px;
-  }
-  .trans-card.ret .tc-icon { background: linear-gradient(135deg, #6b5cff, #111); }
-  .trans-card.sub .tc-icon { background: linear-gradient(135deg, #ff5a3c, #a83db3); }
-  .trans-card .tc-title { font-weight: 600; font-size: 13.5px; }
-  .trans-card .tc-sub   { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
-  .trans-card .tc-meta  { margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-soft); }
-  .trans-card .tc-meta b { color: var(--ink); font-weight: 600; }
-
   .walk-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
   .walk-card { padding: 10px 12px; border-radius: var(--radius-m); background: var(--bg-soft); border: 1px solid var(--line); }
   .walk-card small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
@@ -755,7 +735,7 @@
     </div>
 
     <section id="city-ny" class="city-section fade-in">
-      <div class="city-hero" data-city="ny">
+      <!-- <div class="city-hero" data-city="ny">
         <div>
           <small style="opacity:.85; letter-spacing:.2em; font-size:11px;">THE BIG APPLE</small>
           <h2>New York</h2>
@@ -770,7 +750,7 @@
           <div class="temp">18°</div>
           <small><i class="fa-solid fa-cloud-sun"></i> Partly cloudy</small>
         </div>
-      </div>
+      </div> -->
 
       <div class="qstats" style="margin-top:16px;">
         <div class="qstat"><small>Budget est.</small><b><i class="fa-solid fa-dollar-sign"></i>1,450</b></div>
@@ -1201,44 +1181,11 @@ function getAlerts(day) {
   return alerts;
 }
 
-function getSubwayHint(day) {
-  const t = (day.title + " " + day.activities.map(a => a.name).join(" ")).toLowerCase();
-  if (/american dream|outlet/.test(t))
-    return { icon: "🚌", title: "From Port Authority", body: "NJ Transit 353 bus → American Dream (~25 min)" };
-  if (/downtown|liberty|wall street|9\/11|oculus/.test(t))
-    return { icon: "🚇", title: "From Port Authority", body: "A / C / E to World Trade Center (~12 min)" };
-  if (/chelsea|hudson yards|vessel|high line/.test(t))
-    return { icon: "🚇", title: "From Port Authority", body: "7 to Hudson Yards · or walk ~15 min" };
-  if (/brooklyn|dumbo|chinatown|soho/.test(t))
-    return { icon: "🚇", title: "From Port Authority", body: "A / C to Fulton St → walk to Brooklyn Bridge" };
-  if (/midtown|rockefeller|central park|met|5th avenue/.test(t))
-    return { icon: "🚶", title: "From Port Authority", body: "Walk 8 min → Rockefeller · or E train 1 stop" };
-  return { icon: "🚇", title: "From Port Authority", body: "Check MTA for fastest route to first stop" };
-}
-
 function minusMinutes(hhmm, mins) {
   const [h, m] = hhmm.split(":").map(Number);
   const d = new Date(2026, 4, 1, h, m - mins);
   const pad = n => String(n).padStart(2, "0");
   return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function getBusMorning(day) {
-  const firstReal = day.activities.find(a => !isHomeActivity(a)) || day.activities[0];
-  return {
-    route: "Paterson → Port Authority (NYC)",
-    lines: "190 · 161 · 163",
-    travel: "45–60 min",
-    depart: minusMinutes(firstReal.time, 60)
-  };
-}
-
-function getBusReturn() {
-  return {
-    route: "Port Authority → Paterson",
-    lines: "190 · 161",
-    latest: "22:30"
-  };
 }
 
 function gmapsUrl(coords) {
@@ -1314,50 +1261,7 @@ function renderActivity(a) {
   `;
 }
 
-function renderBusModules(day) {
-  const mo = getBusMorning(day), re = getBusReturn();
-  return `
-    <div class="trans-card">
-      <div class="tc-icon">🚌</div>
-      <div>
-        <div class="tc-title">NJ Transit · Morning</div>
-        <div class="tc-sub">${mo.route}</div>
-        <div class="tc-meta">
-          <span>Lines <b>${mo.lines}</b></span>
-          <span>Travel <b>${mo.travel}</b></span>
-          <span>Depart <b>${mo.depart}</b></span>
-        </div>
-      </div>
-    </div>
-    <div class="trans-card ret">
-      <div class="tc-icon">🌙</div>
-      <div>
-        <div class="tc-title">Return to NJ</div>
-        <div class="tc-sub">${re.route}</div>
-        <div class="tc-meta">
-          <span>Lines <b>${re.lines}</b></span>
-          <span>Latest safe return <b>${re.latest}</b></span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function renderSubwayHint(day) {
-  const s = getSubwayHint(day);
-  return `
-    <div class="trans-card sub">
-      <div class="tc-icon">${s.icon}</div>
-      <div>
-        <div class="tc-title">${s.title}</div>
-        <div class="tc-sub">${s.body}</div>
-      </div>
-    </div>
-  `;
-}
-
 function renderDayCard(cityKey, city, day, i) {
-  const isNY = cityKey === "ny";
   const isSA = cityKey === "sa";
   const dayKey = `${cityKey}_${i}`;
 
@@ -1376,9 +1280,7 @@ function renderDayCard(cityKey, city, day, i) {
         </div>`).join("")}
     </div>` : "";
 
-  const busHtml    = isNY ? renderBusModules(day) : "";
-  const subwayHtml = isNY ? renderSubwayHint(day) : "";
-  const walkHtml   = isSA ? "" : `
+  const walkHtml = isSA ? "" : `
     <div class="walk-stats">
       <div class="walk-card"><small>Walking</small><b>${walkKm.toFixed(1)} km</b></div>
       <div class="walk-card"><small>Est. Steps</small><b>${steps.toLocaleString()}</b></div>
@@ -1404,8 +1306,6 @@ function renderDayCard(cityKey, city, day, i) {
       <div class="day-body">
         <div>
           <div class="day-body-inner">
-            ${busHtml}
-            ${subwayHtml}
             ${walkHtml}
             ${actsHtml}
             ${alertsHtml}
