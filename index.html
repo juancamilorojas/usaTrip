@@ -556,6 +556,98 @@
     .day-body > div { overflow: visible !important; }
     body { background: white; }
   }
+
+  /* =========================================================
+     SMART ITINERARY — sprint additions
+  ========================================================= */
+  .ctx-widget {
+    padding: 18px 22px;
+    border-radius: var(--radius-l);
+    border: 1px solid var(--line);
+    background:
+      radial-gradient(400px 160px at 100% 0%, rgba(255,90,60,.10), transparent 60%),
+      linear-gradient(135deg, rgba(255,90,60,.05), rgba(107,92,255,.05));
+    backdrop-filter: var(--blur);
+    box-shadow: var(--shadow-1);
+    display: grid;
+    grid-template-columns: 1.2fr 1fr auto;
+    gap: 18px;
+    align-items: center;
+  }
+  .ctx-widget .cw-kicker { text-transform: uppercase; letter-spacing: .18em; font-size: 11px; color: var(--muted); font-weight: 600; }
+  .ctx-widget .cw-title  { font-family: 'Playfair Display', serif; font-size: 22px; margin-top: 4px; }
+  .ctx-widget .cw-row    { display: flex; gap: 16px; flex-wrap: wrap; color: var(--ink-soft); font-size: 13px; }
+  .ctx-widget .cw-row b  { color: var(--ink); }
+  .ctx-widget .cw-weather { text-align: right; }
+  .ctx-widget .cw-weather .t { font-family: 'Playfair Display', serif; font-size: 32px; line-height: 1; }
+  .ctx-widget .cw-weather small { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); }
+  @media (max-width: 820px) {
+    .ctx-widget { grid-template-columns: 1fr; }
+    .ctx-widget .cw-weather { text-align: left; }
+  }
+
+  .smart-suggest {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; padding: 12px 14px;
+    background: linear-gradient(135deg, rgba(107,92,255,.08), rgba(255,90,60,.06));
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+  }
+  .smart-suggest .ss-title { font-weight: 600; font-size: 14px; }
+  .smart-suggest .ss-sub   { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .ss-btn { padding: 10px 14px; font-size: 13px; white-space: nowrap; }
+  @media (max-width: 560px) {
+    .smart-suggest { flex-direction: column; align-items: stretch; }
+    .ss-btn { width: 100%; }
+  }
+
+  .trans-card {
+    display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start;
+    padding: 12px 14px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+  }
+  .trans-card .tc-icon {
+    width: 38px; height: 38px; border-radius: 11px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, #2a62c9, #0e7c66);
+    color: #fff; font-size: 17px;
+  }
+  .trans-card.ret .tc-icon { background: linear-gradient(135deg, #6b5cff, #111); }
+  .trans-card.sub .tc-icon { background: linear-gradient(135deg, #ff5a3c, #a83db3); }
+  .trans-card .tc-title { font-weight: 600; font-size: 13.5px; }
+  .trans-card .tc-sub   { color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+  .trans-card .tc-meta  { margin-top: 8px; display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--ink-soft); }
+  .trans-card .tc-meta b { color: var(--ink); font-weight: 600; }
+
+  .walk-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .walk-card { padding: 10px 12px; border-radius: var(--radius-m); background: var(--bg-soft); border: 1px solid var(--line); }
+  .walk-card small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .walk-card b { display: block; font-family: 'Playfair Display', serif; font-size: 18px; margin-top: 2px; }
+
+  .alerts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 560px) { .alerts { grid-template-columns: 1fr; } }
+  .alert-pill {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius-m);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    font-size: 12.5px; color: var(--ink-soft);
+  }
+  .alert-pill .alert-emoji { font-size: 18px; line-height: 1.2; }
+  .alert-pill b { color: var(--ink); font-weight: 600; }
+
+  .activity .act-right { display: flex; align-items: center; gap: 8px; }
+  .nav-btn {
+    display: inline-grid; place-items: center;
+    width: 32px; height: 32px; border-radius: 10px;
+    background: var(--ink); color: var(--bg);
+    border: 1px solid var(--ink);
+    font-size: 12px;
+    transition: transform .15s ease, background .2s, border-color .2s;
+  }
+  .nav-btn:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
 </style>
 </head>
 
@@ -627,6 +719,8 @@
        MAIN CONTENT
   ========================================================= -->
   <main class="main">
+
+    <section id="ctx-widget" class="fade-in" hidden></section>
 
     <div class="tabs fade-in" id="tabs">
       <button class="tab active" data-city="ny"><i class="fa-solid fa-apple-whole"></i> New York <span class="chip">6d</span></button>
@@ -958,6 +1052,151 @@ const TYPE_META = {
   rooftop:  { icon: "fa-martini-glass",label:"Rooftop 🌇",    c: "#0e7c66" }
 };
 
+/* =========================================================
+   SMART ITINERARY — constants + helpers
+========================================================= */
+const HOME_COORDS = [40.9033, -74.1375];
+
+const WEATHER_MOCK = {
+  ny: { temp: 17, icon: "☁️", label: "Cloudy",  wear: "Light jacket" },
+  ph: { temp: 20, icon: "☀️", label: "Sunny",   wear: "T-shirt + light layer" },
+  dc: { temp: 22, icon: "⛅", label: "Mild",    wear: "Comfortable, walkable" },
+  sa: { temp: 27, icon: "☀️", label: "Warm",    wear: "Sunscreen & hat" }
+};
+
+const ALERT_RULES = [
+  { match: /top of the rock/i,                 icon: "🌇", text: "Best at sunset — arrive ~30 min early" },
+  { match: /broadway/i,                        icon: "🎟️", text: "Book early · TKTS booth has same-day deals" },
+  { match: /met museum/i,                      icon: "🏛️", text: "Closes 5 PM — plan accordingly" },
+  { match: /statue of liberty/i,               icon: "🛥️", text: "Reserve Liberty Island ferry online" },
+  { match: /starbucks reserve/i,               icon: "☕", text: "Crowded after 4 PM — go earlier" },
+  { match: /vessel/i,                          icon: "🎫", text: "Timed-entry ticket required" },
+  { match: /9\/11 memorial/i,                  icon: "🕯️", text: "Museum ticket separate · book ahead" },
+  { match: /central park/i,                    icon: "🌳", text: "Huge park · Bethesda Terrace is the classic shot" },
+  { match: /brooklyn bridge/i,                 icon: "🚶", text: "Walk from Manhattan side · ~30 min crossing" },
+  { match: /american dream/i,                  icon: "🛍️", text: "Allow 4+ hrs · NJ Transit 353 from Port Authority" },
+  { match: /liberty bell|independence hall/i,  icon: "🎟️", text: "Free timed-entry pass — book online" },
+  { match: /air and space/i,                   icon: "🚀", text: "Free timed-entry pass required" },
+  { match: /eastern state/i,                   icon: "🔦", text: "Audio tour included · allow ~1.5 h" },
+  { match: /chelsea market/i,                  icon: "🥪", text: "Crowded 12–2 PM — lunch early or late" },
+  { match: /rockefeller center/i,              icon: "🏙️", text: "Early morning = no crowds for the photo" }
+];
+
+function isHomeActivity(a) { return /^home/i.test(a.name); }
+
+function haversine([lat1, lng1], [lat2, lng2]) {
+  const R = 6371, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+function dayWalkingKm(activities) {
+  const inCity = activities.filter(a => !isHomeActivity(a));
+  let km = 0;
+  for (let i = 1; i < inCity.length; i++) {
+    const d = haversine(inCity[i-1].coords, inCity[i].coords);
+    km += d > 3 ? 0.8 : d; // long legs = transit, count minimal walking around stations
+  }
+  return km;
+}
+
+function effortLevel(km) {
+  if (km < 6)  return "Light";
+  if (km < 12) return "Medium";
+  return "Heavy";
+}
+
+function optimizeRoute(activities) {
+  if (activities.length < 3) return activities.slice();
+  const hasHome = isHomeActivity(activities[0]);
+  const anchor = hasHome ? activities[0] : null;
+  const pool = (hasHome ? activities.slice(1) : activities.slice()).map(a => ({ ...a }));
+  if (pool.length < 2) return activities.slice();
+  const times = activities.map(a => a.time);
+
+  const start = anchor ? anchor.coords : pool[0].coords;
+  const result = [];
+  let current = start;
+  while (pool.length) {
+    let bestIdx = 0, bestDist = Infinity;
+    pool.forEach((a, i) => {
+      const d = haversine(current, a.coords);
+      if (d < bestDist) { bestDist = d; bestIdx = i; }
+    });
+    const next = pool.splice(bestIdx, 1)[0];
+    result.push(next);
+    current = next.coords;
+  }
+  const ordered = anchor ? [anchor, ...result] : result;
+  return ordered.map((a, i) => ({ ...a, time: times[i] }));
+}
+
+function getAlerts(day) {
+  const seen = new Set();
+  const alerts = [];
+  day.activities.forEach(a => {
+    ALERT_RULES.forEach(r => {
+      const k = a.name + "|" + r.text;
+      if (r.match.test(a.name) && !seen.has(k)) {
+        seen.add(k);
+        alerts.push({ icon: r.icon, text: r.text, name: a.name });
+      }
+    });
+  });
+  return alerts;
+}
+
+function getSubwayHint(day) {
+  const t = (day.title + " " + day.activities.map(a => a.name).join(" ")).toLowerCase();
+  if (/american dream|outlet/.test(t))
+    return { icon: "🚌", title: "From Port Authority", body: "NJ Transit 353 bus → American Dream (~25 min)" };
+  if (/downtown|liberty|wall street|9\/11|oculus/.test(t))
+    return { icon: "🚇", title: "From Port Authority", body: "A / C / E to World Trade Center (~12 min)" };
+  if (/chelsea|hudson yards|vessel|high line/.test(t))
+    return { icon: "🚇", title: "From Port Authority", body: "7 to Hudson Yards · or walk ~15 min" };
+  if (/brooklyn|dumbo|chinatown|soho/.test(t))
+    return { icon: "🚇", title: "From Port Authority", body: "A / C to Fulton St → walk to Brooklyn Bridge" };
+  if (/midtown|rockefeller|central park|met|5th avenue/.test(t))
+    return { icon: "🚶", title: "From Port Authority", body: "Walk 8 min → Rockefeller · or E train 1 stop" };
+  return { icon: "🚇", title: "From Port Authority", body: "Check MTA for fastest route to first stop" };
+}
+
+function minusMinutes(hhmm, mins) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date(2026, 4, 1, h, m - mins);
+  const pad = n => String(n).padStart(2, "0");
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function getBusMorning(day) {
+  const firstReal = day.activities.find(a => !isHomeActivity(a)) || day.activities[0];
+  return {
+    route: "Paterson → Port Authority (NYC)",
+    lines: "190 · 161 · 163",
+    travel: "45–60 min",
+    depart: minusMinutes(firstReal.time, 60)
+  };
+}
+
+function getBusReturn() {
+  return {
+    route: "Port Authority → Paterson",
+    lines: "190 · 161",
+    latest: "22:30"
+  };
+}
+
+function gmapsUrl(coords) {
+  return `https://www.google.com/maps/dir/?api=1&destination=${coords[0]},${coords[1]}`;
+}
+
+/* persisted state */
+const OPT_KEY = "usaTrip.optimized";
+let OPT_STATE = {};
+try { OPT_STATE = JSON.parse(localStorage.getItem(OPT_KEY) || "{}") || {}; } catch(_) {}
+const LAST_DAY_KEY = "usaTrip.lastDay";
+
 function showToast(msg) {
   const t = $("#toast");
   t.textContent = msg;
@@ -995,58 +1234,159 @@ updateCountdown();
 /* =========================================================
    RENDER TIMELINE (accordions)
 ========================================================= */
+function renderActivity(a) {
+  const noteOrLabel = a.note || TYPE_META[a.type]?.label || "";
+  return `
+    <div class="activity" data-lat="${a.coords[0]}" data-lng="${a.coords[1]}" data-name="${a.name}">
+      <div class="time">${a.time}</div>
+      <div class="info">
+        <b>${a.name}</b>
+        <span>${noteOrLabel}</span>
+      </div>
+      <div class="act-right">
+        <span class="badge ${a.type}">
+          <i class="fa-solid ${TYPE_META[a.type]?.icon || "fa-location-dot"}"></i>
+          ${TYPE_META[a.type]?.label.split(" ")[0] || a.type}
+        </span>
+        <a class="nav-btn" href="${gmapsUrl(a.coords)}" target="_blank" rel="noopener" title="Navigate in Google Maps" data-no-fly aria-label="Navigate">
+          <i class="fa-solid fa-location-arrow"></i>
+        </a>
+      </div>
+    </div>
+  `;
+}
+
+function renderBusModules(day) {
+  const mo = getBusMorning(day), re = getBusReturn();
+  return `
+    <div class="trans-card">
+      <div class="tc-icon">🚌</div>
+      <div>
+        <div class="tc-title">NJ Transit · Morning</div>
+        <div class="tc-sub">${mo.route}</div>
+        <div class="tc-meta">
+          <span>Lines <b>${mo.lines}</b></span>
+          <span>Travel <b>${mo.travel}</b></span>
+          <span>Depart <b>${mo.depart}</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="trans-card ret">
+      <div class="tc-icon">🌙</div>
+      <div>
+        <div class="tc-title">Return to NJ</div>
+        <div class="tc-sub">${re.route}</div>
+        <div class="tc-meta">
+          <span>Lines <b>${re.lines}</b></span>
+          <span>Latest safe return <b>${re.latest}</b></span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderSubwayHint(day) {
+  const s = getSubwayHint(day);
+  return `
+    <div class="trans-card sub">
+      <div class="tc-icon">${s.icon}</div>
+      <div>
+        <div class="tc-title">${s.title}</div>
+        <div class="tc-sub">${s.body}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDayCard(cityKey, city, day, i) {
+  const isNY = cityKey === "ny";
+  const optKey = `${cityKey}_${i}`;
+  const isOptimized = !!OPT_STATE[optKey];
+  const actsData = isOptimized ? optimizeRoute(day.activities) : day.activities;
+
+  const actsHtml = actsData.map(renderActivity).join("");
+  const walkKm = dayWalkingKm(actsData);
+  const steps  = Math.round(walkKm * 1350);
+  const eff    = effortLevel(walkKm);
+
+  const alerts = getAlerts(day);
+  const alertsHtml = alerts.length ? `
+    <div class="alerts">
+      ${alerts.map(al => `
+        <div class="alert-pill">
+          <span class="alert-emoji">${al.icon}</span>
+          <div><b>${al.name}</b> · ${al.text}</div>
+        </div>`).join("")}
+    </div>` : "";
+
+  const busHtml    = isNY ? renderBusModules(day) : "";
+  const subwayHtml = isNY ? renderSubwayHint(day) : "";
+
+  const lastDay = localStorage.getItem(LAST_DAY_KEY);
+  const isOpen = lastDay ? (lastDay === optKey) : (i === 0);
+
+  return `
+    <article class="day ${isOpen ? "open" : ""}" data-city="${cityKey}" data-idx="${i}" style="--hero-a:${day.dayColor}; --hero-b:${city.color};">
+      <button class="day-head" type="button">
+        <div class="day-badge"><b>${day.date.split(" ")[1]}</b><small>${day.date.split(" ")[0]}</small></div>
+        <div class="day-title">
+          <h4>${day.title}</h4>
+          <p>${day.activities.length} stops · ${walkKm.toFixed(1)} km · ${eff}</p>
+        </div>
+        <div class="day-toggle"><i class="fa-solid fa-chevron-down"></i></div>
+      </button>
+      <div class="day-body">
+        <div>
+          <div class="day-body-inner">
+            <div class="smart-suggest">
+              <div>
+                <div class="ss-title">✨ Smart Suggested Order</div>
+                <div class="ss-sub">Better flow · less walking</div>
+              </div>
+              <button class="btn ss-btn ${isOptimized ? "primary" : ""}" data-opt="${optKey}" type="button">
+                <i class="fa-solid ${isOptimized ? "fa-rotate-left" : "fa-wand-magic-sparkles"}"></i>
+                ${isOptimized ? "Restore Original" : "Apply Optimized Route"}
+              </button>
+            </div>
+            ${busHtml}
+            ${subwayHtml}
+            <div class="walk-stats">
+              <div class="walk-card"><small>Walking</small><b>${walkKm.toFixed(1)} km</b></div>
+              <div class="walk-card"><small>Est. Steps</small><b>${steps.toLocaleString()}</b></div>
+              <div class="walk-card"><small>Effort</small><b>${eff}</b></div>
+            </div>
+            ${actsHtml}
+            ${alertsHtml}
+            ${day.tip ? `<div class="tips"><b><i class="fa-solid fa-lightbulb"></i> Tip:</b> ${day.tip}</div>` : ""}
+          </div>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
 function renderTimeline(cityKey) {
   const city = TRIP[cityKey];
   const host = $(`#timeline-${cityKey}`);
   if (!host || !city.days.length) return;
 
-  host.innerHTML = city.days.map((day, i) => {
-    const acts = day.activities.map(a => `
-      <div class="activity" data-lat="${a.coords[0]}" data-lng="${a.coords[1]}" data-name="${a.name}">
-        <div class="time">${a.time}</div>
-        <div class="info">
-          <b>${a.name}</b>
-          <span>${a.note || TYPE_META[a.type]?.label || ""}</span>
-        </div>
-        <span class="badge ${a.type}">
-          <i class="fa-solid ${TYPE_META[a.type]?.icon || "fa-location-dot"}"></i>
-          ${TYPE_META[a.type]?.label.split(" ")[0] || a.type}
-        </span>
-      </div>
-    `).join("");
+  host.innerHTML = city.days.map((day, i) => renderDayCard(cityKey, city, day, i)).join("");
 
-    const walking = (day.activities.length * 1.3).toFixed(1);
-
-    return `
-      <article class="day ${i===0 ? "open" : ""}" style="--hero-a:${day.dayColor}; --hero-b:${city.color};">
-        <button class="day-head" type="button">
-          <div class="day-badge"><b>${day.date.split(" ")[1]}</b><small>${day.date.split(" ")[0]}</small></div>
-          <div class="day-title">
-            <h4>${day.title}</h4>
-            <p>${day.activities.length} stops · ~${walking} km walking</p>
-          </div>
-          <div class="day-toggle"><i class="fa-solid fa-chevron-down"></i></div>
-        </button>
-        <div class="day-body">
-          <div>
-            <div class="day-body-inner">
-              ${acts}
-              ${day.tip ? `<div class="tips"><b><i class="fa-solid fa-lightbulb"></i> Tip:</b> ${day.tip}</div>` : ""}
-            </div>
-          </div>
-        </div>
-      </article>
-    `;
-  }).join("");
-
-  // accordion behavior
+  // accordion behavior + persist last open day
   $$(".day-head", host).forEach(btn => {
-    btn.addEventListener("click", () => btn.parentElement.classList.toggle("open"));
+    btn.addEventListener("click", () => {
+      const art = btn.parentElement;
+      art.classList.toggle("open");
+      if (art.classList.contains("open")) {
+        localStorage.setItem(LAST_DAY_KEY, `${art.dataset.city}_${art.dataset.idx}`);
+      }
+    });
   });
 
-  // activity → focus map marker
+  // activity → focus map marker (but not when clicking nav-btn)
   $$(".activity", host).forEach(el => {
-    el.addEventListener("click", () => {
+    el.addEventListener("click", (e) => {
+      if (e.target.closest("[data-no-fly]")) return;
       const lat = parseFloat(el.dataset.lat);
       const lng = parseFloat(el.dataset.lng);
       const name = el.dataset.name;
@@ -1058,12 +1398,91 @@ function renderTimeline(cityKey) {
     });
   });
 
+  // optimize toggle
+  $$("[data-opt]", host).forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const k = btn.dataset.opt;
+      OPT_STATE[k] = !OPT_STATE[k];
+      localStorage.setItem(OPT_KEY, JSON.stringify(OPT_STATE));
+      localStorage.setItem(LAST_DAY_KEY, k);
+      renderTimeline(cityKey);
+      loadCityOnMap(cityKey);
+      showToast(OPT_STATE[k] ? "Optimized route applied ✨" : "Original order restored");
+    });
+  });
+
   // places counter
   const cnt = $(`[data-count="${cityKey}"]`);
   if (cnt) cnt.textContent = city.days.reduce((s,d)=>s+d.activities.length,0);
 }
 
 Object.keys(TRIP).forEach(renderTimeline);
+
+/* =========================================================
+   CONTEXT WIDGET — Today / Tomorrow / Upcoming
+========================================================= */
+function findNextTripDay() {
+  const MONTHS = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 };
+  const now = new Date();
+  const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const all = [];
+  Object.entries(TRIP).forEach(([key, city]) => {
+    city.days.forEach((d, i) => {
+      const m = d.date.match(/^(\w+)\s+(\d+)/);
+      if (!m || MONTHS[m[1]] == null) return;
+      all.push({ cityKey: key, city, day: d, idx: i, date: new Date(2026, MONTHS[m[1]], +m[2]) });
+    });
+  });
+  all.sort((a, b) => a.date - b.date);
+  const hit = t => all.find(u => +u.date === +t);
+  const today = hit(today0); if (today) return { ...today, when: "today" };
+  const tmr = new Date(today0); tmr.setDate(tmr.getDate() + 1);
+  const tmrHit = hit(tmr);     if (tmrHit) return { ...tmrHit, when: "tomorrow" };
+  const nxt = all.find(u => u.date > today0);
+  if (nxt) return { ...nxt, when: "upcoming", daysAway: Math.ceil((nxt.date - today0) / 86400000) };
+  return null;
+}
+
+function renderContextWidget() {
+  const host = $("#ctx-widget");
+  if (!host) return;
+  const ctx = findNextTripDay();
+  if (!ctx) { host.hidden = true; host.classList.remove("ctx-widget"); return; }
+
+  const isNY = ctx.cityKey === "ny";
+  const w = WEATHER_MOCK[ctx.cityKey] || WEATHER_MOCK.ny;
+  const firstReal = ctx.day.activities.find(a => !isHomeActivity(a)) || ctx.day.activities[0];
+  const leave = isNY ? minusMinutes(firstReal.time, 60) : minusMinutes(firstReal.time, 30);
+  const kicker =
+    ctx.when === "today"    ? "TODAY" :
+    ctx.when === "tomorrow" ? "TOMORROW" :
+    `IN ${ctx.daysAway} DAY${ctx.daysAway === 1 ? "" : "S"}`;
+  const transit = isNY ? "Bus → Port Authority → subway" : "Local transit / walk";
+
+  host.hidden = false;
+  host.classList.add("ctx-widget");
+  host.innerHTML = `
+    <div>
+      <div class="cw-kicker">${kicker} · ${ctx.day.date}</div>
+      <div class="cw-title">${ctx.city.name} · Day ${ctx.idx + 1} — ${ctx.day.title}</div>
+      <div class="cw-row" style="margin-top:10px;">
+        <span>Leave home <b>${leave}</b></span>
+        <span>First stop <b>${firstReal.name}</b></span>
+        <span>Wear <b>${w.wear}</b></span>
+      </div>
+    </div>
+    <div class="cw-row" style="justify-content:center;">
+      <span><i class="fa-solid fa-route"></i> ${transit}</span>
+    </div>
+    <div class="cw-weather">
+      <div class="t">${w.temp}°C ${w.icon}</div>
+      <small>${w.label} · expected</small>
+    </div>
+  `;
+}
+
+renderContextWidget();
 
 /* =========================================================
    MAP
