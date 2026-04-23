@@ -660,17 +660,106 @@
     /* Hide sidebar on mobile */
     .sidebar { display: none; }
 
-    /* Shell + topbar density */
+    /* Shell density */
     .shell { padding: 12px; gap: 12px; }
-    .topbar { padding: 14px 16px; gap: 12px; border-radius: 18px; }
-    .brand { gap: 12px; }
-    .brand .logo { width: 38px; height: 38px; border-radius: 12px; }
-    .brand h1 { font-size: 18px; }
-    .brand .sub { display: none; }
-    .status { gap: 8px; flex-wrap: wrap; }
-    .pill { padding: 6px 10px; font-size: 12px; gap: 6px; }
-    .countdown b { font-size: 18px; }
-    .countdown span { font-size: 11px; }
+
+    /* Mobile topbar redesign — stacked, glassy, accent countdown */
+    .topbar.fade-in {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+      padding: 16px 18px;
+      border-radius: 22px;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(260px 120px at 100% 0%, rgba(255,90,60,.18), transparent 60%),
+        radial-gradient(200px 140px at 0% 100%, rgba(107,92,255,.14), transparent 60%),
+        var(--surface-2);
+    }
+    .topbar.fade-in::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--ny), var(--ph), var(--dc), var(--sa));
+      opacity: .8;
+    }
+    .topbar.fade-in .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .topbar.fade-in .brand .logo {
+      width: 44px; height: 44px;
+      border-radius: 14px;
+      flex-shrink: 0;
+      box-shadow: 0 10px 22px rgba(255,90,60,.4);
+    }
+    .topbar.fade-in .brand > div:last-child { min-width: 0; flex: 1; }
+    .topbar.fade-in .brand h1 {
+      font-size: 18px;
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+    .topbar.fade-in .brand .sub {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .topbar.fade-in .status {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      margin: 0 -18px;
+      padding: 2px 18px;
+    }
+    .topbar.fade-in .status::-webkit-scrollbar { display: none; }
+    .topbar.fade-in .pill {
+      flex-shrink: 0;
+      padding: 7px 12px;
+      font-size: 12px;
+      gap: 6px;
+      border-radius: 999px;
+    }
+    .topbar.fade-in .pill.dot {
+      background: rgba(255,90,60,.14);
+      border-color: rgba(255,90,60,.3);
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .topbar.fade-in .pill.dot::before {
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(255,90,60,.25);
+    }
+    .topbar.fade-in .pill.countdown {
+      background: var(--ink);
+      color: var(--bg);
+      border-color: var(--ink);
+      padding: 6px 12px;
+    }
+    .topbar.fade-in .pill.countdown b {
+      font-size: 15px;
+      color: var(--bg);
+      font-family: 'Playfair Display', serif;
+    }
+    .topbar.fade-in .pill.countdown span {
+      font-size: 10px;
+      opacity: .75;
+      color: var(--bg);
+    }
+    .topbar.fade-in .progress-wrap { margin-top: 0; }
+    .topbar.fade-in .progress { height: 4px; }
 
     /* Sticky tab + day-filter toolbar */
     .tabs {
@@ -759,10 +848,11 @@
   @media (max-width: 480px) {
     .shell { padding: 10px; gap: 10px; }
 
-    /* Topbar stacks vertically with countdown on its own line */
-    .topbar { flex-direction: column; align-items: flex-start; padding: 14px; }
-    .brand h1 { font-size: 17px; }
-    .status { width: 100%; }
+    /* Tighter topbar on small phones */
+    .topbar.fade-in { padding: 14px 16px; gap: 12px; }
+    .topbar.fade-in .brand h1 { font-size: 17px; }
+    .topbar.fade-in .brand .logo { width: 40px; height: 40px; }
+    .topbar.fade-in .status { margin: 0 -16px; padding: 2px 16px; }
 
     /* City hero even tighter */
     .city-hero { padding: 16px; }
