@@ -1070,30 +1070,17 @@ const TRIP = {
     color: "#d4a12a",
     center: [29.4241, -98.4936],
     zoom: 10,
-    days: [
-      {
-        date: "Mon–Fri",
-        title: "Commute · La Vernia ↔ St Mary's University",
-        tip: "Drive ~35–50 min each way depending on traffic. Leave by 07:00 to beat morning rush into San Antonio.",
-        dayColor: "#d4a12a",
-        activities: [
-          { time: "07:00", name: "Home — La Vernia, TX",      type: "landmark", coords: [29.3501,-98.1170], note: "Depart · 200 Great Oaks Ct" },
-          { time: "08:00", name: "St Mary's University",      type: "museum",   coords: [29.4632,-98.5420], note: "Classes · ~50 min drive in rush hour" },
-          { time: "17:30", name: "Return Home · La Vernia",   type: "landmark", coords: [29.3501,-98.1170], note: "~35 min evening drive" }
-        ]
-      },
-      {
-        date: "Weekend",
-        title: "Weekend Exploration · Coming Soon",
-        tip: "Pinned placeholders — schedule still TBD. Classic Texas-weekend trio below.",
-        dayColor: "#e9b85a",
-        activities: [
-          { time: "10:00", name: "River Walk",     type: "landmark", coords: [29.4252,-98.4861], note: "Iconic canal walk" },
-          { time: "12:00", name: "The Alamo",      type: "landmark", coords: [29.4260,-98.4861], note: "Historic mission" },
-          { time: "15:00", name: "Pearl District", type: "shopping", coords: [29.4429,-98.4800], note: "Food hall + shops" }
-        ]
-      }
-    ]
+    days: ["Mon", "Tue", "Wed", "Thu", "Fri"].map(d => ({
+      date: d,
+      title: "Commute · La Vernia ↔ St Mary's University",
+      tip: "Drive ~35–50 min each way depending on traffic. Leave by 07:00 to beat morning rush into San Antonio.",
+      dayColor: "#d4a12a",
+      activities: [
+        { time: "07:00", name: "Home — La Vernia, TX",    type: "landmark", coords: [29.3501,-98.1170], note: "Depart · 200 Great Oaks Ct" },
+        { time: "08:00", name: "St Mary's University",    type: "museum",   coords: [29.4632,-98.5420], note: "Classes · ~50 min drive in rush hour" },
+        { time: "17:30", name: "Return Home · La Vernia", type: "landmark", coords: [29.3501,-98.1170], note: "~35 min evening drive" }
+      ]
+    }))
   }
 };
 
@@ -1322,7 +1309,13 @@ function renderTimeline(cityKey) {
   const host = $(`#timeline-${cityKey}`);
   if (!host || !city.days.length) return;
 
-  host.innerHTML = city.days.map((day, i) => renderDayCard(cityKey, city, day, i)).join("");
+  const f = FILTERS[cityKey];
+  const pairs = (f === "all" || f == null || !city.days[Number(f)])
+    ? city.days.map((d, i) => [d, i])
+    : [[city.days[Number(f)], Number(f)]];
+
+  host.innerHTML = pairs.map(([day, idx]) => renderDayCard(cityKey, city, day, idx)).join("");
+  host.classList.remove("fade-in"); void host.offsetWidth; host.classList.add("fade-in");
 
   // accordion behavior + persist last open day
   $$(".day-head", host).forEach(btn => {
@@ -1389,8 +1382,10 @@ function setDayFilter(cityKey, val) {
   saveFilters();
   renderDayFilters(cityKey);
   renderContextWidget();
+  renderTimeline(cityKey);
   loadCityOnMap(cityKey);
   renderQuickStats(cityKey);
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function pulseDayPill(dayIdx) {
@@ -1676,6 +1671,7 @@ function switchTab(city, resetFilter = true) {
 
   renderDayFilters(city);
   renderContextWidget();
+  renderTimeline(city);
   loadCityOnMap(city);
   renderQuickStats(city);
   localStorage.setItem("usaTrip.lastTab", city);
