@@ -1,0 +1,26 @@
+{
+  "name": "USA Trip — May 2026",
+  "short_name": "USA Trip",
+  "description": "Smart itinerary for the May 2026 USA trip",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f6f5f1",
+  "theme_color": "#f6f5f1",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/public/assets/icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/public/assets/icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -5,6 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>USA Trip — May 2026</title>
 
+<meta name="theme-color" content="#f6f5f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0f" media="(prefers-color-scheme: dark)">
+<meta name="description" content="Smart itinerary for the May 2026 USA trip">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="USA Trip">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/public/assets/icon.png" type="image/png">
+<link rel="apple-touch-icon" href="/public/assets/icon.png">
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1966,6 +1976,14 @@ document.addEventListener("mouseover", e => {
     if (cls) b.title = TYPE_META[cls].label;
   }
 });
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
