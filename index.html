@@ -586,21 +586,6 @@
     .ctx-widget .cw-weather { text-align: left; }
   }
 
-  .smart-suggest {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 16px; padding: 12px 14px;
-    background: linear-gradient(135deg, rgba(107,92,255,.08), rgba(255,90,60,.06));
-    border: 1px solid var(--line);
-    border-radius: var(--radius-m);
-  }
-  .smart-suggest .ss-title { font-weight: 600; font-size: 14px; }
-  .smart-suggest .ss-sub   { color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .ss-btn { padding: 10px 14px; font-size: 13px; white-space: nowrap; }
-  @media (max-width: 560px) {
-    .smart-suggest { flex-direction: column; align-items: stretch; }
-    .ss-btn { width: 100%; }
-  }
-
   .trans-card {
     display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: start;
     padding: 12px 14px;
@@ -766,7 +751,7 @@
       <button class="tab active" data-city="ny"><i class="fa-solid fa-apple-whole"></i> New York <span class="chip">6d</span></button>
       <button class="tab" data-city="ph"><i class="fa-solid fa-bell"></i> Philadelphia <span class="chip">2d</span></button>
       <button class="tab" data-city="dc"><i class="fa-solid fa-landmark-dome"></i> Washington <span class="chip">2d</span></button>
-      <button class="tab" data-city="sa"><i class="fa-solid fa-guitar"></i> San Antonio <span class="chip">Soon</span></button>
+      <button class="tab" data-city="sa"><i class="fa-solid fa-guitar"></i> San Antonio <span class="chip">Open</span></button>
     </div>
 
     <section id="city-ny" class="city-section fade-in">
@@ -777,6 +762,7 @@
           <div class="meta">
             <div class="pill"><i class="fa-regular fa-calendar"></i> May 7 → May 12</div>
             <div class="pill"><i class="fa-regular fa-moon"></i> 5 nights</div>
+            <div class="pill"><i class="fa-solid fa-house"></i> Daily start: Paterson, NJ</div>
             <div class="pill"><i class="fa-solid fa-circle-check"></i> Confirmed</div>
           </div>
         </div>
@@ -856,8 +842,9 @@
           <small style="opacity:.85; letter-spacing:.2em; font-size:11px;">TEXAS SOUL</small>
           <h2>San Antonio</h2>
           <div class="meta">
-            <div class="pill"><i class="fa-regular fa-calendar"></i> Dates TBD</div>
-            <div class="pill"><i class="fa-solid fa-clock"></i> Planning</div>
+            <div class="pill"><i class="fa-regular fa-calendar"></i> Open dates</div>
+            <div class="pill"><i class="fa-solid fa-house"></i> Home: La Vernia, TX</div>
+            <div class="pill"><i class="fa-solid fa-school"></i> St Mary's University</div>
           </div>
         </div>
         <div class="weather">
@@ -866,12 +853,14 @@
         </div>
       </div>
 
-      <div class="soon" style="margin-top:16px;">
-        <i class="fa-solid fa-plane-departure"></i>
-        <h3>Coming Soon ✈️</h3>
-        <p>This stop is still being crafted. Add your first ideas to get started.</p>
-        <button class="btn primary" onclick="showToast('San Antonio plan added to wishlist ✨')"><i class="fa-solid fa-plus"></i> Add Plans</button>
+      <div class="qstats" style="margin-top:16px;">
+        <div class="qstat"><small>Routine</small><b><i class="fa-solid fa-repeat"></i>Mon–Fri</b></div>
+        <div class="qstat"><small>Commute</small><b><i class="fa-solid fa-car"></i>35–50 min</b></div>
+        <div class="qstat"><small>Places</small><b><i class="fa-solid fa-location-dot"></i><span data-count="sa">—</span></b></div>
+        <div class="qstat"><small>Vibe</small><b><i class="fa-solid fa-guitar"></i>Texan</b></div>
       </div>
+
+      <div class="timeline" id="timeline-sa" style="margin-top:16px;"></div>
     </section>
 
   </main>
@@ -909,82 +898,104 @@ const TRIP = {
     days: [
       {
         date: "May 7",
-        title: "Midtown Icons & Central Park",
-        tip: "Start early at Rockefeller, then walk up 5th Ave toward Central Park. MET closes at 5pm.",
+        title: "Midtown Icons · Central Park · MET",
+        tip: "Walkable day. Hit MET before its 5 PM close — Midtown first so you land running next to Port Authority.",
         dayColor: "#ff5a3c",
         activities: [
-          { time: "08:00", name: "Home — Paterson, NJ",  type: "landmark", coords: [40.9033,-74.1375], note: "Depart · 596 20th Ave" },
-          { time: "09:00", name: "Rockefeller Center",   type: "landmark", coords: [40.7587,-73.9787], note: "Skyline views" },
-          { time: "10:00", name: "5th Avenue",           type: "shopping", coords: [40.7624,-73.9738], note: "Flagship stores" },
-          { time: "11:00", name: "St Patrick's Cathedral",type: "landmark", coords: [40.7585,-73.9759], note: "Neo-Gothic icon" },
-          { time: "12:00", name: "Central Park",          type: "landmark", coords: [40.7829,-73.9654], note: "Bethesda Terrace" },
-          { time: "14:30", name: "Bryant Park",           type: "landmark", coords: [40.7536,-73.9832], note: "Coffee break" },
-          { time: "15:30", name: "MET Museum",            type: "museum",   coords: [40.7794,-73.9632], note: "World-class art" },
-          { time: "17:30", name: "Harry Potter Store",    type: "shopping", coords: [40.7415,-73.9890], note: "Flatiron area" },
-          { time: "18:30", name: "M&M's Store",           type: "shopping", coords: [40.7587,-73.9855], note: "Times Square" }
+          { time: "07:00", name: "Home — Paterson, NJ",     type: "landmark", coords: [40.9033,-74.1375], note: "Depart · Bus 190/161/163 → Port Authority" },
+          { time: "08:15", name: "Bryant Park",             type: "landmark", coords: [40.7536,-73.9832], note: "2 min walk from Port Authority" },
+          { time: "08:45", name: "NY Public Library",       type: "landmark", coords: [40.7532,-73.9822], note: "Exterior · lion statues" },
+          { time: "09:30", name: "5th Avenue",              type: "shopping", coords: [40.7624,-73.9738], note: "Flagship stores on the way up" },
+          { time: "10:15", name: "St Patrick's Cathedral",  type: "landmark", coords: [40.7585,-73.9759], note: "Quick interior stop" },
+          { time: "10:45", name: "Rockefeller Center",      type: "landmark", coords: [40.7587,-73.9787], note: "Plaza + flags photo" },
+          { time: "11:30", name: "M&M Store Times Square",  type: "shopping", coords: [40.7587,-73.9855], note: "Quick loop" },
+          { time: "12:15", name: "HP Store · Flatiron",     type: "shopping", coords: [40.7415,-73.9890], note: "Optional detour" },
+          { time: "13:30", name: "Central Park South",      type: "landmark", coords: [40.7660,-73.9796], note: "Lunch + stroll toward MET" },
+          { time: "15:00", name: "MET Museum",              type: "museum",   coords: [40.7794,-73.9632], note: "Enter before 5 PM close" },
+          { time: "18:00", name: "Return · Port Authority", type: "landmark", coords: [40.7573,-73.9902], note: "Subway E → Bus 190 → Paterson" }
         ]
       },
       {
         date: "May 8",
-        title: "Downtown & Lady Liberty",
-        tip: "Book ferry tickets online to skip the line. Wear comfortable shoes — lots of walking.",
+        title: "Downtown · Lady Liberty · Sunset",
+        tip: "Reserve ferry online. End at Top of the Rock for golden hour (sunset ~19:45).",
         dayColor: "#ff8a5c",
         activities: [
-          { time: "07:30", name: "Home — Paterson, NJ", type: "landmark", coords: [40.9033,-74.1375], note: "Depart · 596 20th Ave" },
-          { time: "08:30", name: "Battery Park",        type: "landmark", coords: [40.7033,-74.0170] },
-          { time: "09:30", name: "Statue of Liberty",   type: "landmark", coords: [40.6892,-74.0445], note: "Liberty Island ferry" },
-          { time: "12:30", name: "Wall Street",         type: "landmark", coords: [40.7066,-74.0090], note: "Charging Bull" },
-          { time: "13:30", name: "9/11 Memorial",       type: "landmark", coords: [40.7115,-74.0134] },
-          { time: "15:00", name: "Oculus",              type: "shopping", coords: [40.7118,-74.0122], note: "Architectural gem" },
-          { time: "17:00", name: "Top of the Rock",     type: "rooftop",  coords: [40.7587,-73.9787], note: "Sunset views 🌇" }
+          { time: "07:00", name: "Home — Paterson, NJ",     type: "landmark", coords: [40.9033,-74.1375], note: "Depart · Bus → Port Authority" },
+          { time: "08:30", name: "Battery Park",            type: "landmark", coords: [40.7033,-74.0170], note: "Subway A/C/E to WTC, walk south" },
+          { time: "09:30", name: "Statue of Liberty",       type: "landmark", coords: [40.6892,-74.0445], note: "Ferry from Battery · reserve ahead" },
+          { time: "12:30", name: "Wall Street",             type: "landmark", coords: [40.7066,-74.0090], note: "Historic core" },
+          { time: "13:00", name: "Charging Bull",           type: "landmark", coords: [40.7056,-74.0134], note: "Iconic photo" },
+          { time: "13:45", name: "9/11 Memorial",           type: "landmark", coords: [40.7115,-74.0134], note: "Reflecting pools" },
+          { time: "15:00", name: "Oculus",                  type: "shopping", coords: [40.7118,-74.0122], note: "Lunch + architecture" },
+          { time: "17:30", name: "Top of the Rock",         type: "rooftop",  coords: [40.7587,-73.9787], note: "Subway uptown · sunset viewing" },
+          { time: "20:30", name: "Return · Port Authority", type: "landmark", coords: [40.7573,-73.9902], note: "Bus 190 → Paterson" }
         ]
       },
       {
         date: "May 9",
-        title: "Hudson Yards, Chelsea & West Village",
-        tip: "Book Vessel tickets ahead. Great day for rooftop photos at Pier 57.",
+        title: "Hudson Yards · Chelsea · West Village",
+        tip: "Walk the High Line north-to-south — gravity and shade work in your favor. Book Vessel entry.",
         dayColor: "#a866d6",
         activities: [
-          { time: "08:00", name: "Home — Paterson, NJ",    type: "landmark", coords: [40.9033,-74.1375], note: "Depart · 596 20th Ave" },
-          { time: "09:00", name: "Intrepid Museum",         type: "museum",   coords: [40.7645,-74.0000] },
-          { time: "10:30", name: "Vessel",                  type: "landmark", coords: [40.7538,-74.0020] },
-          { time: "11:00", name: "Hudson Yards",            type: "shopping", coords: [40.7539,-74.0017] },
-          { time: "12:00", name: "High Line",               type: "landmark", coords: [40.7480,-74.0048] },
-          { time: "13:00", name: "Chelsea Market",          type: "food",     coords: [40.7420,-74.0061], note: "Lunch" },
-          { time: "14:30", name: "Little Island",           type: "landmark", coords: [40.7424,-74.0101] },
-          { time: "15:30", name: "Starbucks Reserve Roastery", type: "food", coords: [40.7410,-73.9933] },
-          { time: "16:30", name: "Friends Apartment",       type: "landmark", coords: [40.7320,-74.0060], note: "Photo spot" },
-          { time: "17:00", name: "Magnolia Bakery",         type: "food",     coords: [40.7358,-74.0055], note: "Banana pudding" },
-          { time: "17:30", name: "Carrie Bradshaw Stoop",   type: "landmark", coords: [40.7317,-74.0054] },
-          { time: "18:30", name: "Hudson River Walk",       type: "landmark", coords: [40.7440,-74.0080] },
-          { time: "19:30", name: "Pier 57 Rooftop",         type: "rooftop",  coords: [40.7441,-74.0087], note: "Sunset drinks" }
+          { time: "07:30", name: "Home — Paterson, NJ",        type: "landmark", coords: [40.9033,-74.1375], note: "Depart · Bus → Port Authority" },
+          { time: "09:30", name: "Vessel",                     type: "landmark", coords: [40.7538,-74.0020], note: "Subway 7 to Hudson Yards" },
+          { time: "10:15", name: "Hudson Yards Mall",          type: "shopping", coords: [40.7539,-74.0017], note: "Quick browse + coffee" },
+          { time: "11:00", name: "High Line · North",          type: "landmark", coords: [40.7480,-74.0048], note: "Walk south slowly" },
+          { time: "12:30", name: "Chelsea Market",             type: "food",     coords: [40.7420,-74.0061], note: "Lunch · skip 13:00 peak" },
+          { time: "13:45", name: "Little Island",              type: "landmark", coords: [40.7424,-74.0101], note: "Quick park loop" },
+          { time: "14:30", name: "Pier 57 Rooftop",            type: "rooftop",  coords: [40.7441,-74.0087], note: "Free views + benches" },
+          { time: "15:15", name: "Hudson River Walk",          type: "landmark", coords: [40.7395,-74.0090], note: "Stroll toward West Village" },
+          { time: "16:00", name: "Starbucks Reserve Roastery", type: "food",     coords: [40.7410,-73.9933], note: "Before 16:00 = fewer crowds" },
+          { time: "16:45", name: "Friends Apartment",          type: "landmark", coords: [40.7320,-74.0060], note: "Photo spot" },
+          { time: "17:15", name: "Magnolia Bakery",            type: "food",     coords: [40.7358,-74.0055], note: "Banana pudding" },
+          { time: "17:45", name: "Carrie Bradshaw Stoop",      type: "landmark", coords: [40.7317,-74.0054], note: "Golden hour shot" },
+          { time: "19:00", name: "Return · Port Authority",    type: "landmark", coords: [40.7573,-73.9902], note: "Bus 190 → Paterson" }
         ]
       },
       {
         date: "May 10",
-        title: "Chinatown, Little Italy & Brooklyn",
-        tip: "Cross the Brooklyn Bridge on foot from Manhattan side for the best views.",
+        title: "Chinatown · Little Italy · Brooklyn",
+        tip: "Cross Brooklyn Bridge from Manhattan side for the best skyline reveal.",
         dayColor: "#0e7c66",
         activities: [
-          { time: "08:30", name: "Home — Paterson, NJ", type: "landmark", coords: [40.9033,-74.1375], note: "Depart · 596 20th Ave" },
-          { time: "09:30", name: "Chinatown",          type: "food",     coords: [40.7158,-73.9970] },
-          { time: "10:30", name: "Little Italy",       type: "food",     coords: [40.7191,-73.9973] },
-          { time: "11:30", name: "Milk & Cream",       type: "food",     coords: [40.7191,-73.9950], note: "Cereal-infused ice cream" },
-          { time: "12:30", name: "Brooklyn Bridge",    type: "landmark", coords: [40.7061,-73.9969] },
-          { time: "14:00", name: "DUMBO",              type: "landmark", coords: [40.7033,-73.9881], note: "Washington St photo" },
-          { time: "16:30", name: "Soho",               type: "shopping", coords: [40.7233,-74.0030] },
-          { time: "18:00", name: "Rooftop Cafe",       type: "rooftop",  coords: [40.7218,-73.9950] }
+          { time: "08:00", name: "Home — Paterson, NJ",     type: "landmark", coords: [40.9033,-74.1375], note: "Depart · Bus → Port Authority" },
+          { time: "10:00", name: "Chinatown",               type: "food",     coords: [40.7158,-73.9970], note: "Subway N/Q/R/W to Canal St" },
+          { time: "10:45", name: "Little Italy",            type: "food",     coords: [40.7191,-73.9973], note: "Mulberry St walk" },
+          { time: "11:30", name: "Milk & Cream",            type: "food",     coords: [40.7191,-73.9950], note: "Cereal-infused ice cream" },
+          { time: "12:30", name: "Soho",                    type: "shopping", coords: [40.7233,-74.0030], note: "Lunch + boutiques" },
+          { time: "14:30", name: "Brooklyn Bridge",         type: "landmark", coords: [40.7061,-73.9969], note: "Walk Manhattan → DUMBO" },
+          { time: "15:30", name: "DUMBO",                   type: "landmark", coords: [40.7033,-73.9881], note: "Washington St photo" },
+          { time: "17:30", name: "Rooftop Cafe",            type: "rooftop",  coords: [40.7218,-73.9950], note: "End-of-day drink" },
+          { time: "19:30", name: "Return · Port Authority", type: "landmark", coords: [40.7573,-73.9902], note: "Subway → Bus 190 → Paterson" }
+        ]
+      },
+      {
+        date: "May 11",
+        title: "Bronx · Zoo + optional Times Square",
+        tip: "Bronx Zoo is a full morning — pace yourself. Times Square after dark is the best version.",
+        dayColor: "#2a62c9",
+        activities: [
+          { time: "08:00", name: "Home — Paterson, NJ",     type: "landmark", coords: [40.9033,-74.1375], note: "Depart · Bus → Port Authority" },
+          { time: "10:30", name: "Bronx Zoo",               type: "landmark", coords: [40.8506,-73.8770], note: "Subway 2/5 to West Farms Sq" },
+          { time: "14:30", name: "Manhattan return",        type: "landmark", coords: [40.7580,-73.9855], note: "Subway downtown" },
+          { time: "15:30", name: "Times Square",            type: "landmark", coords: [40.7580,-73.9855], note: "Optional · best at dusk" },
+          { time: "19:00", name: "Return · Port Authority", type: "landmark", coords: [40.7573,-73.9902], note: "Bus 190 → Paterson" }
         ]
       },
       {
         date: "May 12",
-        title: "Outlet shopping & Broadway",
-        tip: "Bus from Port Authority to American Dream. Save Broadway show for the evening.",
-        dayColor: "#2a62c9",
+        title: "NJ Shopping · NYC afternoon · Broadway",
+        tip: "Stay in NJ for the outlet morning — rest before Broadway at night. Last bus 190 ~22:30.",
+        dayColor: "#6b5cff",
         activities: [
-          { time: "09:00", name: "Home — Paterson, NJ",   type: "landmark", coords: [40.9033,-74.1375], note: "Depart · 596 20th Ave" },
-          { time: "10:00", name: "American Dream Mall NJ", type: "shopping", coords: [40.8137,-74.0719], note: "Mega outlet" },
-          { time: "19:00", name: "Broadway Show",          type: "landmark", coords: [40.7590,-73.9845], note: "Theatre district" }
+          { time: "09:00", name: "Home — Paterson, NJ",     type: "landmark", coords: [40.9033,-74.1375], note: "Depart · short drive/bus" },
+          { time: "10:00", name: "American Dream Mall",     type: "shopping", coords: [40.8137,-74.0719], note: "Mega outlet · 4+ hours" },
+          { time: "14:30", name: "Rest at Home",            type: "landmark", coords: [40.9033,-74.1375], note: "Recharge before Broadway" },
+          { time: "17:30", name: "Port Authority (NYC)",    type: "landmark", coords: [40.7573,-73.9902], note: "Bus → Manhattan" },
+          { time: "18:15", name: "Times Square dinner",     type: "food",     coords: [40.7580,-73.9855], note: "Pre-show meal" },
+          { time: "19:30", name: "Broadway Show",           type: "landmark", coords: [40.7590,-73.9845], note: "Theatre district" },
+          { time: "22:45", name: "Return · Port Authority", type: "landmark", coords: [40.7573,-73.9902], note: "Catch last 190 bus" }
         ]
       }
     ]
@@ -998,33 +1009,38 @@ const TRIP = {
     days: [
       {
         date: "May 13",
-        title: "Historic core & waterfront",
-        tip: "Liberty Bell and Independence Hall are free but require timed tickets in peak season.",
+        title: "Core City · Historic Core · Waterfront",
+        tip: "Drop bags first so the afternoon is unburdened. End at Spruce Street Harbor at sunset.",
         dayColor: "#6b5cff",
         activities: [
-          { time: "09:00", name: "30th Street Station",   type: "landmark", coords: [39.9566,-75.1820] },
-          { time: "09:45", name: "Rittenhouse Square",    type: "landmark", coords: [39.9494,-75.1715] },
-          { time: "10:45", name: "City Hall",             type: "landmark", coords: [39.9526,-75.1652] },
-          { time: "11:15", name: "Dilworth Park",         type: "landmark", coords: [39.9527,-75.1664] },
-          { time: "12:30", name: "Reading Terminal Market",type: "food",    coords: [39.9534,-75.1590], note: "Famous roast pork" },
-          { time: "14:00", name: "Independence Hall",     type: "landmark", coords: [39.9489,-75.1499] },
-          { time: "14:45", name: "Liberty Bell",          type: "landmark", coords: [39.9496,-75.1503] },
-          { time: "15:30", name: "Elfreth's Alley",       type: "landmark", coords: [39.9527,-75.1434], note: "Oldest street in USA" },
-          { time: "17:00", name: "Penn's Landing",        type: "landmark", coords: [39.9459,-75.1411] },
-          { time: "18:00", name: "Spruce Street Harbor Park",type: "rooftop",coords: [39.9430,-75.1406], note: "Hammocks & lights" }
+          { time: "09:30", name: "30th Street Station",       type: "landmark", coords: [39.9566,-75.1820], note: "Arrive from NYC" },
+          { time: "10:00", name: "Airbnb — Montrose St",      type: "landmark", coords: [39.9394,-75.1747], note: "Drop bags · 1813 Montrose St" },
+          { time: "10:45", name: "Rowhouses walk",            type: "landmark", coords: [39.9420,-75.1720], note: "Graduate Hospital → Center City" },
+          { time: "11:15", name: "Rittenhouse Square",        type: "landmark", coords: [39.9494,-75.1715], note: "Quick loop" },
+          { time: "12:00", name: "City Hall",                 type: "landmark", coords: [39.9526,-75.1652], note: "Walk-through · tower" },
+          { time: "12:30", name: "Dilworth Park",             type: "landmark", coords: [39.9527,-75.1664], note: "Fountains + shade" },
+          { time: "13:00", name: "Reading Terminal Market",   type: "food",     coords: [39.9534,-75.1590], note: "Roast pork sandwich" },
+          { time: "14:30", name: "Independence Hall",         type: "landmark", coords: [39.9489,-75.1499], note: "Free timed ticket" },
+          { time: "15:15", name: "Liberty Bell",              type: "landmark", coords: [39.9496,-75.1503], note: "5 min walk north" },
+          { time: "16:00", name: "Elfreth's Alley",           type: "landmark", coords: [39.9527,-75.1434], note: "Oldest street in USA" },
+          { time: "17:00", name: "Penn's Landing",            type: "landmark", coords: [39.9459,-75.1411], note: "Waterfront stroll" },
+          { time: "18:00", name: "Spruce Street Harbor Park", type: "rooftop",  coords: [39.9430,-75.1406], note: "Sunset · hammocks + lights" }
         ]
       },
       {
         date: "May 14",
-        title: "Art, walls & cheesesteaks",
-        tip: "Decide: Pat's or Geno's? (Or honor both — they're across the street.)",
+        title: "Eastern State · Magic Gardens · South Philly Food",
+        tip: "ESP opens at 10 — go early. Pat's and Geno's are across the street; order one each and decide for yourself.",
         dayColor: "#a866d6",
         activities: [
-          { time: "09:30", name: "Eastern State Penitentiary", type: "museum",   coords: [39.9685,-75.1727] },
-          { time: "11:30", name: "Philadelphia's Magic Gardens",type: "museum",  coords: [39.9419,-75.1592] },
-          { time: "13:00", name: "Angelo's Pizzeria",           type: "food",    coords: [39.9340,-75.1590] },
-          { time: "14:30", name: "Pat's King of Steaks",        type: "food",    coords: [39.9338,-75.1586], note: "Original cheesesteak" },
-          { time: "15:00", name: "Geno's Steaks",               type: "food",    coords: [39.9339,-75.1580], note: "Neon rival" }
+          { time: "09:00", name: "Airbnb — Montrose St",         type: "landmark", coords: [39.9394,-75.1747], note: "Depart · 1813 Montrose St" },
+          { time: "10:00", name: "Eastern State Penitentiary",   type: "museum",   coords: [39.9685,-75.1727], note: "Audio tour included" },
+          { time: "12:00", name: "Philadelphia Magic Gardens",   type: "museum",   coords: [39.9419,-75.1592], note: "Mosaic art" },
+          { time: "13:00", name: "South Street walk",            type: "landmark", coords: [39.9414,-75.1570], note: "Murals + shops" },
+          { time: "14:00", name: "Angelo's Pizzeria",            type: "food",     coords: [39.9340,-75.1590], note: "Priority lunch" },
+          { time: "15:30", name: "Pat's King of Steaks",         type: "food",     coords: [39.9338,-75.1586], note: "Original cheesesteak" },
+          { time: "16:00", name: "Geno's Steaks",                type: "food",     coords: [39.9339,-75.1580], note: "Neon rival" },
+          { time: "17:00", name: "Return Airbnb",                type: "landmark", coords: [39.9394,-75.1747], note: "Walk back · ~15 min" }
         ]
       }
     ]
@@ -1073,8 +1089,31 @@ const TRIP = {
     name: "San Antonio",
     color: "#d4a12a",
     center: [29.4241, -98.4936],
-    zoom: 12,
-    days: []
+    zoom: 10,
+    days: [
+      {
+        date: "Mon–Fri",
+        title: "Commute · La Vernia ↔ St Mary's University",
+        tip: "Drive ~35–50 min each way depending on traffic. Leave by 07:00 to beat morning rush into San Antonio.",
+        dayColor: "#d4a12a",
+        activities: [
+          { time: "07:00", name: "Home — La Vernia, TX",      type: "landmark", coords: [29.3501,-98.1170], note: "Depart · 200 Great Oaks Ct" },
+          { time: "08:00", name: "St Mary's University",      type: "museum",   coords: [29.4632,-98.5420], note: "Classes · ~50 min drive in rush hour" },
+          { time: "17:30", name: "Return Home · La Vernia",   type: "landmark", coords: [29.3501,-98.1170], note: "~35 min evening drive" }
+        ]
+      },
+      {
+        date: "Weekend",
+        title: "Weekend Exploration · Coming Soon",
+        tip: "Pinned placeholders — schedule still TBD. Classic Texas-weekend trio below.",
+        dayColor: "#e9b85a",
+        activities: [
+          { time: "10:00", name: "River Walk",     type: "landmark", coords: [29.4252,-98.4861], note: "Iconic canal walk" },
+          { time: "12:00", name: "The Alamo",      type: "landmark", coords: [29.4260,-98.4861], note: "Historic mission" },
+          { time: "15:00", name: "Pearl District", type: "shopping", coords: [29.4429,-98.4800], note: "Food hall + shops" }
+        ]
+      }
+    ]
   }
 };
 
@@ -1147,31 +1186,6 @@ function effortLevel(km) {
   return "Heavy";
 }
 
-function optimizeRoute(activities) {
-  if (activities.length < 3) return activities.slice();
-  const hasHome = isHomeActivity(activities[0]);
-  const anchor = hasHome ? activities[0] : null;
-  const pool = (hasHome ? activities.slice(1) : activities.slice()).map(a => ({ ...a }));
-  if (pool.length < 2) return activities.slice();
-  const times = activities.map(a => a.time);
-
-  const start = anchor ? anchor.coords : pool[0].coords;
-  const result = [];
-  let current = start;
-  while (pool.length) {
-    let bestIdx = 0, bestDist = Infinity;
-    pool.forEach((a, i) => {
-      const d = haversine(current, a.coords);
-      if (d < bestDist) { bestDist = d; bestIdx = i; }
-    });
-    const next = pool.splice(bestIdx, 1)[0];
-    result.push(next);
-    current = next.coords;
-  }
-  const ordered = anchor ? [anchor, ...result] : result;
-  return ordered.map((a, i) => ({ ...a, time: times[i] }));
-}
-
 function getAlerts(day) {
   const seen = new Set();
   const alerts = [];
@@ -1232,9 +1246,6 @@ function gmapsUrl(coords) {
 }
 
 /* persisted state */
-const OPT_KEY = "usaTrip.optimized";
-let OPT_STATE = {};
-try { OPT_STATE = JSON.parse(localStorage.getItem(OPT_KEY) || "{}") || {}; } catch(_) {}
 const LAST_DAY_KEY = "usaTrip.lastDay";
 
 const FILTERS_KEY = "usaTrip.filters";
@@ -1347,12 +1358,11 @@ function renderSubwayHint(day) {
 
 function renderDayCard(cityKey, city, day, i) {
   const isNY = cityKey === "ny";
-  const optKey = `${cityKey}_${i}`;
-  const isOptimized = !!OPT_STATE[optKey];
-  const actsData = isOptimized ? optimizeRoute(day.activities) : day.activities;
+  const isSA = cityKey === "sa";
+  const dayKey = `${cityKey}_${i}`;
 
-  const actsHtml = actsData.map(renderActivity).join("");
-  const walkKm = dayWalkingKm(actsData);
+  const actsHtml = day.activities.map(renderActivity).join("");
+  const walkKm = dayWalkingKm(day.activities);
   const steps  = Math.round(walkKm * 1350);
   const eff    = effortLevel(walkKm);
 
@@ -1368,40 +1378,35 @@ function renderDayCard(cityKey, city, day, i) {
 
   const busHtml    = isNY ? renderBusModules(day) : "";
   const subwayHtml = isNY ? renderSubwayHint(day) : "";
+  const walkHtml   = isSA ? "" : `
+    <div class="walk-stats">
+      <div class="walk-card"><small>Walking</small><b>${walkKm.toFixed(1)} km</b></div>
+      <div class="walk-card"><small>Est. Steps</small><b>${steps.toLocaleString()}</b></div>
+      <div class="walk-card"><small>Effort</small><b>${eff}</b></div>
+    </div>`;
 
   const lastDay = localStorage.getItem(LAST_DAY_KEY);
-  const isOpen = lastDay ? (lastDay === optKey) : (i === 0);
+  const isOpen = lastDay ? (lastDay === dayKey) : (i === 0);
+  const headerMeta = isSA
+    ? `${day.activities.length} stops · Drive commute`
+    : `${day.activities.length} stops · ${walkKm.toFixed(1)} km · ${eff}`;
 
   return `
     <article class="day ${isOpen ? "open" : ""}" data-city="${cityKey}" data-idx="${i}" style="--hero-a:${day.dayColor}; --hero-b:${city.color};">
       <button class="day-head" type="button">
-        <div class="day-badge"><b>${day.date.split(" ")[1]}</b><small>${day.date.split(" ")[0]}</small></div>
+        <div class="day-badge"><b>${day.date.split(" ")[1] || day.date}</b><small>${day.date.split(" ")[0]}</small></div>
         <div class="day-title">
           <h4>${day.title}</h4>
-          <p>${day.activities.length} stops · ${walkKm.toFixed(1)} km · ${eff}</p>
+          <p>${headerMeta}</p>
         </div>
         <div class="day-toggle"><i class="fa-solid fa-chevron-down"></i></div>
       </button>
       <div class="day-body">
         <div>
           <div class="day-body-inner">
-            <div class="smart-suggest">
-              <div>
-                <div class="ss-title">✨ Smart Suggested Order</div>
-                <div class="ss-sub">Better flow · less walking</div>
-              </div>
-              <button class="btn ss-btn ${isOptimized ? "primary" : ""}" data-opt="${optKey}" type="button">
-                <i class="fa-solid ${isOptimized ? "fa-rotate-left" : "fa-wand-magic-sparkles"}"></i>
-                ${isOptimized ? "Restore Original" : "Apply Optimized Route"}
-              </button>
-            </div>
             ${busHtml}
             ${subwayHtml}
-            <div class="walk-stats">
-              <div class="walk-card"><small>Walking</small><b>${walkKm.toFixed(1)} km</b></div>
-              <div class="walk-card"><small>Est. Steps</small><b>${steps.toLocaleString()}</b></div>
-              <div class="walk-card"><small>Effort</small><b>${eff}</b></div>
-            </div>
+            ${walkHtml}
             ${actsHtml}
             ${alertsHtml}
             ${day.tip ? `<div class="tips"><b><i class="fa-solid fa-lightbulb"></i> Tip:</b> ${day.tip}</div>` : ""}
@@ -1442,20 +1447,6 @@ function renderTimeline(cityKey) {
         const m = (window.__markers || []).find(mk => mk._popupName === name);
         if (m) m.openPopup();
       }
-    });
-  });
-
-  // optimize toggle
-  $$("[data-opt]", host).forEach(btn => {
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const k = btn.dataset.opt;
-      OPT_STATE[k] = !OPT_STATE[k];
-      localStorage.setItem(OPT_KEY, JSON.stringify(OPT_STATE));
-      localStorage.setItem(LAST_DAY_KEY, k);
-      renderTimeline(cityKey);
-      loadCityOnMap(cityKey);
-      showToast(OPT_STATE[k] ? "Optimized route applied ✨" : "Original order restored");
     });
   });
 
@@ -1730,11 +1721,9 @@ function loadCityOnMap(cityKey) {
   const allPts = [];
   daysToShow.forEach(({ day, idx: dayIdx }) => {
     const color = day.dayColor;
-    const optKey = `${cityKey}_${dayIdx}`;
-    const acts = OPT_STATE[optKey] ? optimizeRoute(day.activities) : day.activities;
     const pts = [];
 
-    acts.forEach((a, aIdx) => {
+    day.activities.forEach((a, aIdx) => {
       const m = L.marker(a.coords, { icon: makeIcon(color, aIdx+1) }).addTo(map);
       m._popupName = a.name;
       m._dayIdx = dayIdx;
