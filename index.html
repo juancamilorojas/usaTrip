@@ -648,6 +648,44 @@
     transition: transform .15s ease, background .2s, border-color .2s;
   }
   .nav-btn:hover { background: var(--accent); border-color: var(--accent); transform: translateY(-1px); }
+
+  /* Day filter bar */
+  .day-filter {
+    display: flex; gap: 6px; padding: 6px;
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow-1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .day-filter::-webkit-scrollbar { display: none; }
+  .df-pill {
+    flex: 0 0 auto;
+    padding: 9px 16px;
+    border-radius: 999px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-soft);
+    font-family: inherit; font-weight: 500; font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background .2s, color .2s, transform .15s, box-shadow .2s;
+  }
+  .df-pill:hover:not(.disabled) { background: var(--bg-soft); color: var(--ink); }
+  .df-pill.active {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: 0 6px 16px rgba(0,0,0,.18);
+  }
+  .df-pill.disabled { opacity: .55; cursor: not-allowed; }
+  @keyframes df-pulse {
+    0%, 100% { transform: none; box-shadow: 0 0 0 0 rgba(255,90,60,0); }
+    35%      { transform: translateY(-2px); box-shadow: 0 0 0 8px rgba(255,90,60,.28); }
+  }
+  .df-pill.pulse { animation: df-pulse .9s ease; }
 </style>
 </head>
 
@@ -719,6 +757,8 @@
        MAIN CONTENT
   ========================================================= -->
   <main class="main">
+
+    <div id="day-filter" class="day-filter fade-in" hidden></div>
 
     <section id="ctx-widget" class="fade-in" hidden></section>
 
@@ -1197,6 +1237,13 @@ let OPT_STATE = {};
 try { OPT_STATE = JSON.parse(localStorage.getItem(OPT_KEY) || "{}") || {}; } catch(_) {}
 const LAST_DAY_KEY = "usaTrip.lastDay";
 
+const FILTERS_KEY = "usaTrip.filters";
+let FILTERS = { ny: "all", ph: "all", dc: "all", sa: "all" };
+try { FILTERS = Object.assign(FILTERS, JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}")); } catch(_) {}
+function saveFilters() { localStorage.setItem(FILTERS_KEY, JSON.stringify(FILTERS)); }
+
+const STATE = { city: "ny" };
+
 function showToast(msg) {
   const t = $("#toast");
   t.textContent = msg;
@@ -1420,26 +1467,87 @@ function renderTimeline(cityKey) {
 Object.keys(TRIP).forEach(renderTimeline);
 
 /* =========================================================
-   CONTEXT WIDGET — Today / Tomorrow / Upcoming
+   DAY FILTER BAR
 ========================================================= */
-function findNextTripDay() {
-  const MONTHS = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 };
+function renderDayFilters(cityKey) {
+  const host = $("#day-filter");
+  if (!host) return;
+  const city = TRIP[cityKey];
+
+  if (!city || !city.days.length) {
+    host.hidden = true;
+    host.innerHTML = "";
+    return;
+  }
+
+  host.hidden = false;
+  const cur = FILTERS[cityKey] ?? "all";
+  host.innerHTML =
+    `<button class="df-pill ${cur === "all" ? "active" : ""}" data-filter="all" type="button">All Days</button>` +
+    city.days.map((d, i) =>
+      `<button class="df-pill ${String(cur) === String(i) ? "active" : ""}" data-filter="${i}" type="button">${d.date}</button>`
+    ).join("");
+
+  $$("[data-filter]", host).forEach(btn => {
+    btn.addEventListener("click", () => setDayFilter(cityKey, btn.dataset.filter));
+  });
+}
+
+function setDayFilter(cityKey, val) {
+  FILTERS[cityKey] = val === "all" ? "all" : Number(val);
+  saveFilters();
+  renderDayFilters(cityKey);
+  renderContextWidget();
+  loadCityOnMap(cityKey);
+  renderQuickStats(cityKey);
+}
+
+function pulseDayPill(dayIdx) {
+  const pill = document.querySelector(`#day-filter [data-filter="${dayIdx}"]`);
+  if (!pill) return;
+  pill.classList.remove("pulse"); void pill.offsetWidth;
+  pill.classList.add("pulse");
+  setTimeout(() => pill.classList.remove("pulse"), 900);
+}
+
+function renderQuickStats(cityKey) {
+  const city = TRIP[cityKey];
+  if (!city) return;
+  const cnt = $(`[data-count="${cityKey}"]`);
+  if (!cnt) return;
+  const filter = FILTERS[cityKey];
+  const stops = (filter === "all" || filter == null)
+    ? city.days.reduce((s, d) => s + d.activities.length, 0)
+    : (city.days[Number(filter)]?.activities.length || 0);
+  cnt.textContent = stops;
+}
+
+/* =========================================================
+   CONTEXT WIDGET — filter-aware (All Days / specific day)
+========================================================= */
+const MONTHS = { Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11 };
+
+function findNextDayInCity(cityKey) {
+  const city = TRIP[cityKey];
+  if (!city || !city.days.length) return null;
   const now = new Date();
   const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const all = [];
-  Object.entries(TRIP).forEach(([key, city]) => {
-    city.days.forEach((d, i) => {
+  const list = city.days
+    .map((d, i) => {
       const m = d.date.match(/^(\w+)\s+(\d+)/);
-      if (!m || MONTHS[m[1]] == null) return;
-      all.push({ cityKey: key, city, day: d, idx: i, date: new Date(2026, MONTHS[m[1]], +m[2]) });
-    });
-  });
-  all.sort((a, b) => a.date - b.date);
-  const hit = t => all.find(u => +u.date === +t);
-  const today = hit(today0); if (today) return { ...today, when: "today" };
+      if (!m || MONTHS[m[1]] == null) return null;
+      return { day: d, idx: i, date: new Date(2026, MONTHS[m[1]], +m[2]) };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.date - b.date);
+
+  const hit = t => list.find(u => +u.date === +t);
+  const today = hit(today0);
+  if (today) return { ...today, when: "today" };
   const tmr = new Date(today0); tmr.setDate(tmr.getDate() + 1);
-  const tmrHit = hit(tmr);     if (tmrHit) return { ...tmrHit, when: "tomorrow" };
-  const nxt = all.find(u => u.date > today0);
+  const tmrHit = hit(tmr);
+  if (tmrHit) return { ...tmrHit, when: "tomorrow" };
+  const nxt = list.find(u => u.date > today0);
   if (nxt) return { ...nxt, when: "upcoming", daysAway: Math.ceil((nxt.date - today0) / 86400000) };
   return null;
 }
@@ -1447,29 +1555,109 @@ function findNextTripDay() {
 function renderContextWidget() {
   const host = $("#ctx-widget");
   if (!host) return;
-  const ctx = findNextTripDay();
-  if (!ctx) { host.hidden = true; host.classList.remove("ctx-widget"); return; }
+  const cityKey = STATE.city;
+  const city = TRIP[cityKey];
 
-  const isNY = ctx.cityKey === "ny";
-  const w = WEATHER_MOCK[ctx.cityKey] || WEATHER_MOCK.ny;
-  const firstReal = ctx.day.activities.find(a => !isHomeActivity(a)) || ctx.day.activities[0];
+  if (!city || !city.days.length) {
+    host.hidden = true; host.classList.remove("ctx-widget");
+    return;
+  }
+
+  const filter = FILTERS[cityKey];
+  if (filter === "all" || filter == null) {
+    renderOverviewWidget(host, cityKey, city);
+  } else {
+    const idx = Number(filter);
+    if (isNaN(idx) || !city.days[idx]) {
+      FILTERS[cityKey] = "all"; saveFilters();
+      renderOverviewWidget(host, cityKey, city);
+    } else {
+      renderDayWidget(host, cityKey, city, idx);
+    }
+  }
+}
+
+function renderOverviewWidget(host, cityKey, city) {
+  const w = WEATHER_MOCK[cityKey] || WEATHER_MOCK.ny;
+  const isNY = cityKey === "ny";
+  const next = findNextDayInCity(cityKey);
+  const totalStops = city.days.reduce((s, d) => s + d.activities.length, 0);
+
+  host.hidden = false;
+  host.classList.add("ctx-widget");
+
+  if (next) {
+    const firstReal = next.day.activities.find(a => !isHomeActivity(a)) || next.day.activities[0];
+    const leave = isNY ? minusMinutes(firstReal.time, 60) : minusMinutes(firstReal.time, 30);
+    const kicker =
+      next.when === "today"    ? "TODAY" :
+      next.when === "tomorrow" ? "TOMORROW" :
+      `IN ${next.daysAway} DAY${next.daysAway === 1 ? "" : "S"}`;
+    const transit = isNY ? "Bus → Port Authority → subway" : "Local transit / walk";
+    host.innerHTML = `
+      <div>
+        <div class="cw-kicker">${kicker} · ${next.day.date}</div>
+        <div class="cw-title">${city.name} · Day ${next.idx + 1} — ${next.day.title}</div>
+        <div class="cw-row" style="margin-top:10px;">
+          <span>Leave home <b>${leave}</b></span>
+          <span>First stop <b>${firstReal.name}</b></span>
+          <span>Wear <b>${w.wear}</b></span>
+        </div>
+      </div>
+      <div class="cw-row" style="justify-content:center;">
+        <span><i class="fa-solid fa-route"></i> ${transit}</span>
+      </div>
+      <div class="cw-weather">
+        <div class="t">${w.temp}°C ${w.icon}</div>
+        <small>${w.label} · expected</small>
+      </div>
+    `;
+  } else {
+    host.innerHTML = `
+      <div>
+        <div class="cw-kicker">FULL TRIP VIEW · ${city.name}</div>
+        <div class="cw-title">${city.days.length} day${city.days.length === 1 ? "" : "s"} · ${totalStops} stops</div>
+        <div class="cw-row" style="margin-top:10px;">
+          <span><i class="fa-regular fa-calendar"></i> ${city.days[0].date} → ${city.days[city.days.length - 1].date}</span>
+          <span><i class="fa-solid fa-location-dot"></i> ${totalStops} places</span>
+        </div>
+      </div>
+      <div class="cw-row" style="justify-content:center;">
+        <span><i class="fa-solid fa-filter"></i> Pick a day to zoom in</span>
+      </div>
+      <div class="cw-weather">
+        <div class="t">${w.temp}°C ${w.icon}</div>
+        <small>Avg · ${w.label}</small>
+      </div>
+    `;
+  }
+}
+
+function renderDayWidget(host, cityKey, city, dayIdx) {
+  const day = city.days[dayIdx];
+  const isNY = cityKey === "ny";
+  const w = WEATHER_MOCK[cityKey] || WEATHER_MOCK.ny;
+  const firstReal = day.activities.find(a => !isHomeActivity(a)) || day.activities[0];
   const leave = isNY ? minusMinutes(firstReal.time, 60) : minusMinutes(firstReal.time, 30);
-  const kicker =
-    ctx.when === "today"    ? "TODAY" :
-    ctx.when === "tomorrow" ? "TOMORROW" :
-    `IN ${ctx.daysAway} DAY${ctx.daysAway === 1 ? "" : "S"}`;
-  const transit = isNY ? "Bus → Port Authority → subway" : "Local transit / walk";
+  const walkKm = dayWalkingKm(day.activities);
+  const eff = effortLevel(walkKm);
+  const transit = isNY ? "Bus → Port Authority → walk/subway" : "Local transit / walk";
 
   host.hidden = false;
   host.classList.add("ctx-widget");
   host.innerHTML = `
     <div>
-      <div class="cw-kicker">${kicker} · ${ctx.day.date}</div>
-      <div class="cw-title">${ctx.city.name} · Day ${ctx.idx + 1} — ${ctx.day.title}</div>
+      <div class="cw-kicker">${day.date} · DAY ${dayIdx + 1}</div>
+      <div class="cw-title">${city.name} · ${day.title}</div>
       <div class="cw-row" style="margin-top:10px;">
         <span>Leave home <b>${leave}</b></span>
         <span>First stop <b>${firstReal.name}</b></span>
         <span>Wear <b>${w.wear}</b></span>
+      </div>
+      <div class="cw-row" style="margin-top:6px;">
+        <span>Stops <b>${day.activities.length}</b></span>
+        <span>Walking <b>${walkKm.toFixed(1)} km</b></span>
+        <span>Effort <b>${eff}</b></span>
       </div>
     </div>
     <div class="cw-row" style="justify-content:center;">
@@ -1481,8 +1669,6 @@ function renderContextWidget() {
     </div>
   `;
 }
-
-renderContextWidget();
 
 /* =========================================================
    MAP
@@ -1521,24 +1707,37 @@ function loadCityOnMap(cityKey) {
   clearMap();
 
   $("#mapTitle").textContent = city.name;
-  $("#mapSub").textContent   = city.days.length
-    ? `${city.days.reduce((s,d)=>s+d.activities.length,0)} stops · ${city.days.length} days`
-    : "Planning soon";
 
   if (!city.days.length) {
+    $("#mapSub").textContent = "Planning soon";
     map.flyTo(city.center, city.zoom, { duration: 1.2 });
     $("#legend").innerHTML = `<span class="dot" style="--c:${city.color}">Start planning ✈️</span>`;
     return;
   }
 
+  const filterVal = FILTERS[cityKey];
+  const isAll = filterVal === "all" || filterVal == null;
+  const daysToShow = isAll
+    ? city.days.map((d, i) => ({ day: d, idx: i }))
+    : (city.days[Number(filterVal)]
+        ? [{ day: city.days[Number(filterVal)], idx: Number(filterVal) }]
+        : city.days.map((d, i) => ({ day: d, idx: i })));
+
+  $("#mapSub").textContent = isAll
+    ? `${city.days.reduce((s,d)=>s+d.activities.length,0)} stops · ${city.days.length} days`
+    : `${daysToShow[0].day.date} · ${daysToShow[0].day.activities.length} stops`;
+
   const allPts = [];
-  city.days.forEach((day, dIdx) => {
+  daysToShow.forEach(({ day, idx: dayIdx }) => {
     const color = day.dayColor;
+    const optKey = `${cityKey}_${dayIdx}`;
+    const acts = OPT_STATE[optKey] ? optimizeRoute(day.activities) : day.activities;
     const pts = [];
 
-    day.activities.forEach((a, aIdx) => {
+    acts.forEach((a, aIdx) => {
       const m = L.marker(a.coords, { icon: makeIcon(color, aIdx+1) }).addTo(map);
       m._popupName = a.name;
+      m._dayIdx = dayIdx;
       m.bindPopup(`
         <div>
           <div class="popup-title">${a.name}</div>
@@ -1550,12 +1749,12 @@ function loadCityOnMap(cityKey) {
           </div>
         </div>
       `);
+      m.on("click", () => pulseDayPill(dayIdx));
       window.__markers.push(m);
       pts.push(a.coords);
       allPts.push(a.coords);
     });
 
-    // Route line per day
     if (pts.length > 1) {
       const line = L.polyline(pts, {
         color, weight: 3, opacity: .6, dashArray: "6,8", lineJoin: "round"
@@ -1569,34 +1768,37 @@ function loadCityOnMap(cityKey) {
     map.flyToBounds(bounds, { padding: [40, 40], duration: 1.2, maxZoom: 15 });
   }
 
-  // Legend per day
-  $("#legend").innerHTML = city.days.map(d =>
-    `<span class="dot" style="--c:${d.dayColor}">${d.date}</span>`
+  $("#legend").innerHTML = daysToShow.map(({ day }) =>
+    `<span class="dot" style="--c:${day.dayColor}">${day.date}</span>`
   ).join("");
 }
-
-loadCityOnMap("ny");
 
 /* =========================================================
    TABS
 ========================================================= */
-function switchTab(city) {
+function switchTab(city, resetFilter = true) {
+  STATE.city = city;
   $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.city === city));
   $$(".city-section").forEach(sec => sec.classList.toggle("hidden", sec.id !== `city-${city}`));
   const sec = $(`#city-${city}`);
   if (sec) { sec.classList.remove("fade-in"); void sec.offsetWidth; sec.classList.add("fade-in"); }
 
+  if (resetFilter) { FILTERS[city] = "all"; saveFilters(); }
+
+  renderDayFilters(city);
+  renderContextWidget();
   loadCityOnMap(city);
+  renderQuickStats(city);
   localStorage.setItem("usaTrip.lastTab", city);
 
   const names = { ny: "New York", ph: "Philadelphia", dc: "Washington DC", sa: "San Antonio" };
   $("#statNext").textContent = names[city];
 }
 
-$$(".tab").forEach(t => t.addEventListener("click", () => switchTab(t.dataset.city)));
+$$(".tab").forEach(t => t.addEventListener("click", () => switchTab(t.dataset.city, true)));
 
-const savedTab = localStorage.getItem("usaTrip.lastTab");
-if (savedTab && TRIP[savedTab]) switchTab(savedTab);
+const savedTab = localStorage.getItem("usaTrip.lastTab") || "ny";
+switchTab(TRIP[savedTab] ? savedTab : "ny", false);
 
 /* =========================================================
    CHECKLIST — persisted
