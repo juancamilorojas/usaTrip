@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>USA Trip — May 2026</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* =========================================================
+     THEME TOKENS — premium palette, auto dark mode
+  ========================================================= */
+  :root {
+    --bg:         #f6f5f1;
+    --bg-soft:    #efede6;
+    --surface:    rgba(255,255,255,0.72);
+    --surface-2:  rgba(255,255,255,0.88);
+    --ink:        #131313;
+    --ink-soft:   #4b4b4b;
+    --muted:      #8a8a8a;
+    --line:       rgba(19,19,19,0.08);
+    --accent:     #ff5a3c;
+    --accent-2:   #111111;
+    --ny:         #ff5a3c;
+    --ph:         #6b5cff;
+    --dc:         #0e7c66;
+    --sa:         #d4a12a;
+    --radius-l:   22px;
+    --radius-m:   14px;
+    --radius-s:   10px;
+    --shadow-1:   0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
+    --shadow-2:   0 4px 14px rgba(0,0,0,.06), 0 24px 48px rgba(0,0,0,.08);
+    --blur:       saturate(160%) blur(18px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:        #0d0d0f;
+      --bg-soft:   #121216;
+      --surface:   rgba(24,24,28,0.72);
+      --surface-2: rgba(28,28,34,0.92);
+      --ink:       #f3f1ec;
+      --ink-soft:  #c8c6c0;
+      --muted:     #8b8a86;
+      --line:      rgba(255,255,255,0.08);
+      --accent:    #ff6a4d;
+      --accent-2:  #f3f1ec;
+      --shadow-1:  0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.4);
+      --shadow-2:  0 4px 20px rgba(0,0,0,.4), 0 30px 60px rgba(0,0,0,.55);
+    }
+  }
+
+  /* =========================================================
+     RESET + BASE
+  ========================================================= */
+  *,*::before,*::after { box-sizing: border-box; }
+  html,body { margin:0; padding:0; }
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    background-image:
+      radial-gradient(1200px 600px at 110% -10%, rgba(255,90,60,0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(107,92,255,0.08), transparent 60%),
+      radial-gradient(800px 500px at 50% 110%, rgba(14,124,102,0.08), transparent 60%);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,h3,h4 { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; letter-spacing:-0.01em; margin: 0; }
+  a { color: inherit; text-decoration: none; }
+  button { font-family: inherit; }
+
+  /* =========================================================
+     LAYOUT SHELL
+  ========================================================= */
+  .shell {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr) 440px;
+    gap: 24px;
+    padding: 24px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1200px) {
+    .shell { grid-template-columns: 260px minmax(0,1fr) 380px; gap: 16px; padding: 16px; }
+  }
+  @media (max-width: 1024px) {
+    .shell { grid-template-columns: 1fr; }
+    .sidebar { order: 2; }
+    .main    { order: 1; }
+    .mapcol  { order: 3; }
+  }
+
+  /* =========================================================
+     HEADER
+  ========================================================= */
+  .topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 22px 26px;
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-1);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand .logo {
+    width: 44px; height: 44px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--ny), var(--ph));
+    display: grid; place-items: center; color: white;
+    box-shadow: 0 8px 18px rgba(255,90,60,.35);
+  }
+  .brand h1 {
+    font-size: clamp(20px, 2vw, 28px);
+    line-height: 1;
+  }
+  .brand .sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .status {
+    display: flex; align-items: center; gap: 14px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px; border-radius: 999px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    font-size: 13px; font-weight: 500;
+  }
+  .pill.dot::before {
+    content:""; width:8px; height:8px; border-radius:50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 4px rgba(255,90,60,.15);
+  }
+  .countdown {
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .countdown b { font-size: 22px; font-family: 'Playfair Display', serif; }
+  .countdown span { color: var(--muted); font-size: 12px; }
+
+  .progress-wrap {
+    margin-top: 14px;
+    grid-column: 1 / -1;
+  }
+  .progress {
+    height: 6px; border-radius: 999px;
+    background: var(--line); overflow: hidden;
+    position: relative;
+  }
+  .progress > span {
+    display: block; height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--ny), var(--ph), var(--dc));
+    border-radius: 999px;
+    transition: width 1.2s ease;
+  }
+
+  /* =========================================================
+     SIDEBAR
+  ========================================================= */
+  .sidebar {
+    display: flex; flex-direction: column; gap: 16px;
+    position: sticky; top: 16px; align-self: start;
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+  }
+  @media (max-width: 1024px) {
+    .sidebar { position: static; max-height: none; }
+  }
+  .card {
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    padding: 20px;
+    box-shadow: var(--shadow-1);
+  }
+  .card h3 {
+    font-size: 16px; display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+  }
+  .stats-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .stat {
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    padding: 12px 14px;
+  }
+  .stat small { color: var(--muted); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+  .stat b { display:block; font-size: 20px; font-family: 'Playfair Display', serif; margin-top: 2px; }
+  .stat.span2 { grid-column: 1 / -1; }
+
+  .checklist { list-style: none; padding: 0; margin: 0; }
+  .checklist li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 8px; border-bottom: 1px dashed var(--line);
+    cursor: pointer;
+    transition: background .15s;
+    border-radius: 8px;
+  }
+  .checklist li:hover { background: var(--bg-soft); }
+  .checklist li:last-child { border-bottom: 0; }
+  .checklist input[type="checkbox"] { accent-color: var(--accent); width:16px; height:16px; }
+  .checklist li.done span { text-decoration: line-through; color: var(--muted); }
+
+  .sidebtns { display:flex; flex-direction:column; gap:8px; }
+  .btn {
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--ink);
+    font-weight: 500; font-size: 14px;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .2s ease, background .2s;
+  }
+  .btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-1); }
+  .btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  .btn.primary:hover { background: var(--accent); border-color: var(--accent); }
+
+  /* =========================================================
+     MAIN CONTENT
+  ========================================================= */
+  .main { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+
+  .tabs {
+    display: flex; gap: 6px; padding: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    box-shadow: var(--shadow-1);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tab {
+    flex: 1; min-width: 120px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 0;
+    background: transparent;
+    color: var(--ink-soft);
+    font-weight: 500; font-size: 14px;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    white-space: nowrap;
+    transition: background .2s, color .2s;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    background: var(--ink);
+    color: var(--bg);
+    box-shadow: 0 6px 16px rgba(0,0,0,.15);
+  }
+  .tab .chip {
+    font-size: 10px; padding: 2px 6px; border-radius: 999px;
+    background: rgba(255,255,255,.12); color: inherit;
+  }
+
+  .city-hero {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 20px;
+    padding: 26px;
+    border-radius: var(--radius-l);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-1);
+    position: relative; overflow: hidden;
+    color: white;
+    min-height: 190px;
+  }
+  .city-hero::before {
+    content:""; position:absolute; inset:0; z-index:0;
+    background:
+      radial-gradient(600px 300px at 90% 0%, rgba(255,255,255,.18), transparent 60%),
+      linear-gradient(135deg, var(--hero-a), var(--hero-b));
+  }
+  .city-hero::after {
+    content:""; position:absolute; inset:0; z-index:0; opacity:.18;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(255,255,255,.25) 0 1px, transparent 1px 18px);
+  }
+  .city-hero > * { position: relative; z-index: 1; }
+  .city-hero h2 { font-size: clamp(28px, 3.6vw, 44px); line-height: 1; }
+  .city-hero .meta {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px;
+  }
+  .city-hero .meta .pill {
+    background: rgba(255,255,255,.14);
+    border-color: rgba(255,255,255,.22);
+    color: white; backdrop-filter: blur(8px);
+  }
+  .city-hero .weather {
+    align-self: end; text-align: right;
+  }
+  .city-hero .weather .temp {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px; line-height: 1;
+  }
+  .city-hero .weather small { opacity:.85; font-size: 12px; }
+
+  /* City palettes */
+  .city-hero[data-city="ny"] { --hero-a: #ff7a5c; --hero-b: #d12a18; }
+  .city-hero[data-city="ph"] { --hero-a: #7d6fff; --hero-b: #3a2db3; }
+  .city-hero[data-city="dc"] { --hero-a: #17a084; --hero-b: #065340; }
+  .city-hero[data-city="sa"] { --hero-a: #e9b85a; --hero-b: #a3751a; }
+
+  /* Quick city stats row */
+  .qstats {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 10px;
+  }
+  @media (max-width: 640px) { .qstats { grid-template-columns: repeat(2, 1fr); } }
+  .qstat {
+    padding: 14px 16px; border-radius: var(--radius-m);
+    background: var(--surface); border: 1px solid var(--line);
+    backdrop-filter: var(--blur);
+  }
+  .qstat small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .qstat b { display: block; font-size: 18px; font-family: 'Playfair Display', serif; margin-top: 2px; }
+  .qstat i { margin-right: 8px; color: var(--accent); }
+
+  /* Timeline accordion */
+  .timeline { display:flex; flex-direction:column; gap: 12px; }
+  .day {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+  }
+  .day-head {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: transparent;
+    border: 0; cursor: pointer;
+    text-align: left;
+  }
+  .day-head:hover { background: var(--bg-soft); }
+  .day-badge {
+    min-width: 72px;
+    padding: 10px 12px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--hero-a,var(--ink)), var(--hero-b,var(--ink)));
+    color: white; text-align: center;
+    box-shadow: 0 10px 24px rgba(0,0,0,.12);
+  }
+  .day-badge b { display:block; font-size: 20px; font-family: 'Playfair Display', serif; line-height:1; }
+  .day-badge small { display:block; font-size: 10px; opacity:.85; text-transform: uppercase; letter-spacing:.1em; margin-top:2px; }
+  .day-title h4 { font-size: 18px; }
+  .day-title p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+  .day-toggle {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--bg-soft); color: var(--ink-soft);
+    transition: transform .3s ease;
+  }
+  .day.open .day-toggle { transform: rotate(180deg); }
+  .day-body {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows .35s ease;
+  }
+  .day.open .day-body { grid-template-rows: 1fr; }
+  .day-body > div { overflow: hidden; }
+  .day-body-inner {
+    padding: 0 20px 20px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .activity {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    gap: 14px; align-items: center;
+    padding: 12px 14px;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-m);
+    transition: transform .15s, box-shadow .2s, background .2s;
+    cursor: pointer;
+  }
+  .activity:hover { transform: translateY(-1px); box-shadow: var(--shadow-1); background: var(--surface-2); }
+  .activity .time {
+    font-family: 'Playfair Display', serif; font-size: 14px;
+    color: var(--ink-soft);
+    text-align: center;
+    padding: 6px 4px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+  .activity .info b { display:block; font-size: 14.5px; }
+  .activity .info span { color: var(--muted); font-size: 12.5px; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600;
+    padding: 5px 10px; border-radius: 999px;
+    background: var(--surface-2); border:1px solid var(--line);
+  }
+  .badge.food     { color:#c9472a; }
+  .badge.landmark { color:#2a62c9; }
+  .badge.shopping { color:#a83db3; }
+  .badge.rooftop  { color:#0e7c66; }
+  .badge.museum   { color:#7b5d00; }
+
+  .tips {
+    padding: 14px 16px;
+    background: linear-gradient(135deg, rgba(255,90,60,.08), rgba(107,92,255,.06));
+    border: 1px dashed var(--line);
+    border-radius: var(--radius-m);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .tips b { color: var(--ink); }
+
+  /* =========================================================
+     MAP COLUMN
+  ========================================================= */
+  .mapcol { position: sticky; top: 16px; align-self: start; }
+  @media (max-width: 1024px) { .mapcol { position: static; } }
+  .mapcard {
+    border-radius: var(--radius-l);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-2);
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+  }
+  .map-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid var(--line);
+  }
+  .map-head h3 { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+  .map-head small { color: var(--muted); font-size: 12px; }
+  #map {
+    height: calc(100vh - 190px);
+    min-height: 480px;
+    width: 100%;
+  }
+  @media (max-width: 1024px) {
+    #map { height: 420px; }
+  }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    padding: 12px 16px; border-top: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+  .legend .dot {
+    display:inline-flex; align-items:center; gap:6px;
+    font-size: 11.5px; color: var(--ink-soft);
+  }
+  .legend .dot::before {
+    content:""; width:10px; height:10px; border-radius:50%;
+    background: var(--c, var(--accent));
+    box-shadow: 0 0 0 2px rgba(255,255,255,.7);
+  }
+
+  /* Leaflet marker style */
+  .pin {
+    width: 28px; height: 28px; border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    background: var(--c, var(--accent));
+    border: 2px solid white;
+    box-shadow: 0 6px 14px rgba(0,0,0,.25);
+    display: grid; place-items: center;
+    color: white; font-weight: 700; font-size: 11px;
+  }
+  .pin span { transform: rotate(45deg); }
+
+  .leaflet-popup-content-wrapper {
+    border-radius: 14px;
+    box-shadow: var(--shadow-2);
+    font-family: 'Inter', sans-serif;
+  }
+  .leaflet-popup-content { margin: 12px 14px; min-width: 180px; }
+  .popup-title { font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+  .popup-meta  { font-size: 12px; color: #777; }
+
+  /* Coming soon card */
+  .soon {
+    padding: 60px 30px;
+    text-align: center;
+    border-radius: var(--radius-l);
+    border: 1px dashed var(--line);
+    background: var(--surface);
+    backdrop-filter: var(--blur);
+  }
+  .soon i.fa-plane-departure {
+    font-size: 48px; color: var(--sa); margin-bottom: 12px;
+    animation: float 3s ease-in-out infinite;
+  }
+  .soon h3 { font-size: 28px; margin-bottom: 8px; }
+  .soon p  { color: var(--muted); margin: 0 0 18px; }
+  @keyframes float { 50% { transform: translateY(-8px); } }
+
+  /* Scroll-top FAB */
+  .fab {
+    position: fixed; right: 20px; bottom: 20px;
+    width: 44px; height: 44px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: var(--ink); color: var(--bg);
+    border: 0; cursor: pointer;
+    box-shadow: var(--shadow-2);
+    opacity: 0; pointer-events: none;
+    transform: translateY(10px);
+    transition: all .25s ease;
+    z-index: 999;
+  }
+  .fab.show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+  .fab:hover { background: var(--accent); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(30px);
+    padding: 12px 18px; border-radius: 999px;
+    background: var(--ink); color: var(--bg);
+    font-size: 13px; font-weight: 500;
+    box-shadow: var(--shadow-2);
+    opacity: 0; pointer-events: none;
+    transition: all .3s ease;
+    z-index: 1000;
+  }
+  .toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
+
+  /* Fade-in sections */
+  .fade-in { animation: fadeUp .5s ease both; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(10px);} to { opacity:1; transform: none; } }
+
+  .hidden { display: none !important; }
+
+  /* Print styles */
+  @media print {
+    .sidebar, .mapcol, .tabs, .fab { display: none !important; }
+    .shell { display: block; padding: 0; }
+    .day.open .day-body { grid-template-rows: 1fr; }
+    .day-body > div { overflow: visible !important; }
+    body { background: white; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="shell">
+
+  <!-- =========================================================
+       HEADER
+  ========================================================= -->
+  <header class="topbar fade-in">
+    <div class="brand">
+      <div class="logo"><i class="fa-solid fa-plane-departure"></i></div>
+      <div>
+        <h1>USA TRIP · MAY 2026</h1>
+        <div class="sub">New York · Philadelphia · Washington DC · San Antonio</div>
+      </div>
+    </div>
+
+    <div class="status">
+      <div class="pill"><i class="fa-regular fa-calendar"></i> <span>May 7 → May 16, 2026</span></div>
+      <div class="pill dot">Planning Mode</div>
+      <div class="pill countdown">
+        <b id="cdNumber">—</b><span>days to go</span>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress"><span id="progressBar"></span></div>
+    </div>
+  </header>
+
+  <!-- =========================================================
+       SIDEBAR
+  ========================================================= -->
+  <aside class="sidebar">
+    <div class="card fade-in">
+      <h3><i class="fa-solid fa-chart-simple"></i> Trip Stats</h3>
+      <div class="stats-grid">
+        <div class="stat"><small>Cities</small><b>4</b></div>
+        <div class="stat"><small>Total days</small><b id="statDays">10</b></div>
+        <div class="stat span2"><small>Next destination</small><b id="statNext">New York</b></div>
+        <div class="stat"><small>Places</small><b id="statPlaces">0</b></div>
+        <div class="stat"><small>Visited</small><b>3 <span style="font-size:12px;color:var(--muted)">(mock)</span></b></div>
+      </div>
+    </div>
+
+    <div class="card fade-in">
+      <h3><i class="fa-solid fa-list-check"></i> Travel Checklist</h3>
+      <ul class="checklist" id="checklist">
+        <li data-key="passport"><input type="checkbox"><i class="fa-solid fa-passport" style="color:var(--muted)"></i><span>Passport</span></li>
+        <li data-key="tickets"><input type="checkbox"><i class="fa-solid fa-ticket" style="color:var(--muted)"></i><span>Tickets</span></li>
+        <li data-key="hotels"><input type="checkbox"><i class="fa-solid fa-hotel" style="color:var(--muted)"></i><span>Hotels</span></li>
+        <li data-key="insurance"><input type="checkbox"><i class="fa-solid fa-shield-heart" style="color:var(--muted)"></i><span>Travel Insurance</span></li>
+        <li data-key="powerbank"><input type="checkbox"><i class="fa-solid fa-battery-full" style="color:var(--muted)"></i><span>Power Bank</span></li>
+        <li data-key="cards"><input type="checkbox"><i class="fa-solid fa-credit-card" style="color:var(--muted)"></i><span>Cards</span></li>
+      </ul>
+    </div>
+
+    <div class="card fade-in sidebtns">
+      <h3><i class="fa-solid fa-toolbox"></i> Actions</h3>
+      <button class="btn primary" id="btnExport"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+      <button class="btn" id="btnPrint"><i class="fa-solid fa-print"></i> Print Itinerary</button>
+      <button class="btn" id="btnTop"><i class="fa-solid fa-arrow-up"></i> Scroll to Top</button>
+    </div>
+  </aside>
+
+  <!-- =========================================================
+       MAIN CONTENT
+  ========================================================= -->
+  <main class="main">
+
+    <div class="tabs fade-in" id="tabs">
+      <button class="tab active" data-city="ny"><i class="fa-solid fa-apple-whole"></i> New York <span class="chip">6d</span></button>
+      <button class="tab" data-city="ph"><i class="fa-solid fa-bell"></i> Philadelphia <span class="chip">2d</span></button>
+      <button class="tab" data-city="dc"><i class="fa-solid fa-landmark-dome"></i> Washington <span class="chip">2d</span></button>
+      <button class="tab" data-city="sa"><i class="fa-solid fa-guitar"></i> San Antonio <span class="chip">Soon</span></button>
+    </div>
+
+    <section id="city-ny" class="city-section fade-in">
+      <div class="city-hero" data-city="ny">
+        <div>
+          <small style="opacity:.85; letter-spacing:.2em; font-size:11px;">THE BIG APPLE</small>
+          <h2>New York</h2>
+          <div class="meta">
+            <div class="pill"><i class="fa-regular fa-calendar"></i> May 7 → May 12</div>
+            <div class="pill"><i class="fa-regular fa-moon"></i> 5 nights</div>
+            <div class="pill"><i class="fa-solid fa-circle-check"></i> Confirmed</div>
+          </div>
+        </div>
+        <div class="weather">
+          <div class="temp">18°</div>
+          <small><i class="fa-solid fa-cloud-sun"></i> Partly cloudy</small>
+        </div>
+      </div>
+
+      <div class="qstats" style="margin-top:16px;">
+        <div class="qstat"><small>Budget est.</small><b><i class="fa-solid fa-dollar-sign"></i>1,450</b></div>
+        <div class="qstat"><small>Walking</small><b><i class="fa-solid fa-person-walking"></i>45 km</b></div>
+        <div class="qstat"><small>Places</small><b><i class="fa-solid fa-location-dot"></i><span data-count="ny">—</span></b></div>
+        <div class="qstat"><small>Vibe</small><b><i class="fa-solid fa-city"></i>Urban</b></div>
+      </div>
+
+      <div class="timeline" id="timeline-ny" style="margin-top:16px;"></div>
+    </section>
+
+    <section id="city-ph" class="city-section hidden">
+      <div class="city-hero" data-city="ph">
+        <div>
+          <small style="opacity:.85; letter-spacing:.2em; font-size:11px;">CITY OF BROTHERLY LOVE</small>
+          <h2>Philadelphia</h2>
+          <div class="meta">
+            <div class="pill"><i class="fa-regular fa-calendar"></i> May 13 → May 14</div>
+            <div class="pill"><i class="fa-regular fa-moon"></i> 1 night</div>
+            <div class="pill"><i class="fa-solid fa-circle-check"></i> Confirmed</div>
+          </div>
+        </div>
+        <div class="weather">
+          <div class="temp">20°</div>
+          <small><i class="fa-solid fa-sun"></i> Sunny</small>
+        </div>
+      </div>
+
+      <div class="qstats" style="margin-top:16px;">
+        <div class="qstat"><small>Budget est.</small><b><i class="fa-solid fa-dollar-sign"></i>380</b></div>
+        <div class="qstat"><small>Walking</small><b><i class="fa-solid fa-person-walking"></i>18 km</b></div>
+        <div class="qstat"><small>Places</small><b><i class="fa-solid fa-location-dot"></i><span data-count="ph">—</span></b></div>
+        <div class="qstat"><small>Vibe</small><b><i class="fa-solid fa-bell"></i>Historic</b></div>
+      </div>
+
+      <div class="timeline" id="timeline-ph" style="margin-top:16px;"></div>
+    </section>
+
+    <section id="city-dc" class="city-section hidden">
+      <div class="city-hero" data-city="dc">
+        <div>
+          <small style="opacity:.85; letter-spacing:.2em; font-size:11px;">THE CAPITAL</small>
+          <h2>Washington DC</h2>
+          <div class="meta">
+            <div class="pill"><i class="fa-regular fa-calendar"></i> May 15 → May 16</div>
+            <div class="pill"><i class="fa-regular fa-moon"></i> 1 night</div>
+            <div class="pill"><i class="fa-solid fa-circle-check"></i> Confirmed</div>
+          </div>
+        </div>
+        <div class="weather">
+          <div class="temp">22°</div>
+          <small><i class="fa-solid fa-cloud-sun"></i> Mild</small>
+        </div>
+      </div>
+
+      <div class="qstats" style="margin-top:16px;">
+        <div class="qstat"><small>Budget est.</small><b><i class="fa-solid fa-dollar-sign"></i>420</b></div>
+        <div class="qstat"><small>Walking</small><b><i class="fa-solid fa-person-walking"></i>22 km</b></div>
+        <div class="qstat"><small>Places</small><b><i class="fa-solid fa-location-dot"></i><span data-count="dc">—</span></b></div>
+        <div class="qstat"><small>Vibe</small><b><i class="fa-solid fa-landmark-dome"></i>Monumental</b></div>
+      </div>
+
+      <div class="timeline" id="timeline-dc" style="margin-top:16px;"></div>
+    </section>
+
+    <section id="city-sa" class="city-section hidden">
+      <div class="city-hero" data-city="sa">
+        <div>
+          <small style="opacity:.85; letter-spacing:.2em; font-size:11px;">TEXAS SOUL</small>
+          <h2>San Antonio</h2>
+          <div class="meta">
+            <div class="pill"><i class="fa-regular fa-calendar"></i> Dates TBD</div>
+            <div class="pill"><i class="fa-solid fa-clock"></i> Planning</div>
+          </div>
+        </div>
+        <div class="weather">
+          <div class="temp">27°</div>
+          <small><i class="fa-solid fa-sun"></i> Warm</small>
+        </div>
+      </div>
+
+      <div class="soon" style="margin-top:16px;">
+        <i class="fa-solid fa-plane-departure"></i>
+        <h3>Coming Soon ✈️</h3>
+        <p>This stop is still being crafted. Add your first ideas to get started.</p>
+        <button class="btn primary" onclick="showToast('San Antonio plan added to wishlist ✨')"><i class="fa-solid fa-plus"></i> Add Plans</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================
+       MAP
+  ========================================================= -->
+  <aside class="mapcol">
+    <div class="mapcard fade-in">
+      <div class="map-head">
+        <h3><i class="fa-solid fa-map-location-dot"></i> <span id="mapTitle">New York</span></h3>
+        <small id="mapSub">Interactive itinerary</small>
+      </div>
+      <div id="map"></div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </aside>
+
+</div>
+
+<button class="fab" id="fabTop" aria-label="Scroll to top"><i class="fa-solid fa-arrow-up"></i></button>
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* =========================================================
+   TRIP DATA — single source of truth
+========================================================= */
+const TRIP = {
+  ny: {
+    name: "New York",
+    color: "#ff5a3c",
+    center: [40.7580, -73.9855],
+    zoom: 12,
+    days: [
+      {
+        date: "May 7",
+        title: "Midtown Icons & Central Park",
+        tip: "Start early at Rockefeller, then walk up 5th Ave toward Central Park. MET closes at 5pm.",
+        dayColor: "#ff5a3c",
+        activities: [
+          { time: "09:00", name: "Rockefeller Center",   type: "landmark", coords: [40.7587,-73.9787], note: "Skyline views" },
+          { time: "10:00", name: "5th Avenue",           type: "shopping", coords: [40.7624,-73.9738], note: "Flagship stores" },
+          { time: "11:00", name: "St Patrick's Cathedral",type: "landmark", coords: [40.7585,-73.9759], note: "Neo-Gothic icon" },
+          { time: "12:00", name: "Central Park",          type: "landmark", coords: [40.7829,-73.9654], note: "Bethesda Terrace" },
+          { time: "14:30", name: "Bryant Park",           type: "landmark", coords: [40.7536,-73.9832], note: "Coffee break" },
+          { time: "15:30", name: "MET Museum",            type: "museum",   coords: [40.7794,-73.9632], note: "World-class art" },
+          { time: "17:30", name: "Harry Potter Store",    type: "shopping", coords: [40.7415,-73.9890], note: "Flatiron area" },
+          { time: "18:30", name: "M&M's Store",           type: "shopping", coords: [40.7587,-73.9855], note: "Times Square" }
+        ]
+      },
+      {
+        date: "May 8",
+        title: "Downtown & Lady Liberty",
+        tip: "Book ferry tickets online to skip the line. Wear comfortable shoes — lots of walking.",
+        dayColor: "#ff8a5c",
+        activities: [
+          { time: "08:30", name: "Battery Park",        type: "landmark", coords: [40.7033,-74.0170] },
+          { time: "09:30", name: "Statue of Liberty",   type: "landmark", coords: [40.6892,-74.0445], note: "Liberty Island ferry" },
+          { time: "12:30", name: "Wall Street",         type: "landmark", coords: [40.7066,-74.0090], note: "Charging Bull" },
+          { time: "13:30", name: "9/11 Memorial",       type: "landmark", coords: [40.7115,-74.0134] },
+          { time: "15:00", name: "Oculus",              type: "shopping", coords: [40.7118,-74.0122], note: "Architectural gem" },
+          { time: "17:00", name: "Top of the Rock",     type: "rooftop",  coords: [40.7587,-73.9787], note: "Sunset views 🌇" }
+        ]
+      },
+      {
+        date: "May 9",
+        title: "Hudson Yards, Chelsea & West Village",
+        tip: "Book Vessel tickets ahead. Great day for rooftop photos at Pier 57.",
+        dayColor: "#a866d6",
+        activities: [
+          { time: "09:00", name: "Intrepid Museum",         type: "museum",   coords: [40.7645,-74.0000] },
+          { time: "10:30", name: "Vessel",                  type: "landmark", coords: [40.7538,-74.0020] },
+          { time: "11:00", name: "Hudson Yards",            type: "shopping", coords: [40.7539,-74.0017] },
+          { time: "12:00", name: "High Line",               type: "landmark", coords: [40.7480,-74.0048] },
+          { time: "13:00", name: "Chelsea Market",          type: "food",     coords: [40.7420,-74.0061], note: "Lunch" },
+          { time: "14:30", name: "Little Island",           type: "landmark", coords: [40.7424,-74.0101] },
+          { time: "15:30", name: "Starbucks Reserve Roastery", type: "food", coords: [40.7410,-73.9933] },
+          { time: "16:30", name: "Friends Apartment",       type: "landmark", coords: [40.7320,-74.0060], note: "Photo spot" },
+          { time: "17:00", name: "Magnolia Bakery",         type: "food",     coords: [40.7358,-74.0055], note: "Banana pudding" },
+          { time: "17:30", name: "Carrie Bradshaw Stoop",   type: "landmark", coords: [40.7317,-74.0054] },
+          { time: "18:30", name: "Hudson River Walk",       type: "landmark", coords: [40.7440,-74.0080] },
+          { time: "19:30", name: "Pier 57 Rooftop",         type: "rooftop",  coords: [40.7441,-74.0087], note: "Sunset drinks" }
+        ]
+      },
+      {
+        date: "May 10",
+        title: "Chinatown, Little Italy & Brooklyn",
+        tip: "Cross the Brooklyn Bridge on foot from Manhattan side for the best views.",
+        dayColor: "#0e7c66",
+        activities: [
+          { time: "09:30", name: "Chinatown",          type: "food",     coords: [40.7158,-73.9970] },
+          { time: "10:30", name: "Little Italy",       type: "food",     coords: [40.7191,-73.9973] },
+          { time: "11:30", name: "Milk & Cream",       type: "food",     coords: [40.7191,-73.9950], note: "Cereal-infused ice cream" },
+          { time: "12:30", name: "Brooklyn Bridge",    type: "landmark", coords: [40.7061,-73.9969] },
+          { time: "14:00", name: "DUMBO",              type: "landmark", coords: [40.7033,-73.9881], note: "Washington St photo" },
+          { time: "16:30", name: "Soho",               type: "shopping", coords: [40.7233,-74.0030] },
+          { time: "18:00", name: "Rooftop Cafe",       type: "rooftop",  coords: [40.7218,-73.9950] }
+        ]
+      },
+      {
+        date: "May 12",
+        title: "Outlet shopping & Broadway",
+        tip: "Bus from Port Authority to American Dream. Save Broadway show for the evening.",
+        dayColor: "#2a62c9",
+        activities: [
+          { time: "10:00", name: "American Dream Mall NJ", type: "shopping", coords: [40.8137,-74.0719], note: "Mega outlet" },
+          { time: "19:00", name: "Broadway Show",          type: "landmark", coords: [40.7590,-73.9845], note: "Theatre district" }
+        ]
+      }
+    ]
+  },
+
+  ph: {
+    name: "Philadelphia",
+    color: "#6b5cff",
+    center: [39.9526, -75.1652],
+    zoom: 13,
+    days: [
+      {
+        date: "May 13",
+        title: "Historic core & waterfront",
+        tip: "Liberty Bell and Independence Hall are free but require timed tickets in peak season.",
+        dayColor: "#6b5cff",
+        activities: [
+          { time: "09:00", name: "30th Street Station",   type: "landmark", coords: [39.9566,-75.1820] },
+          { time: "09:45", name: "Rittenhouse Square",    type: "landmark", coords: [39.9494,-75.1715] },
+          { time: "10:45", name: "City Hall",             type: "landmark", coords: [39.9526,-75.1652] },
+          { time: "11:15", name: "Dilworth Park",         type: "landmark", coords: [39.9527,-75.1664] },
+          { time: "12:30", name: "Reading Terminal Market",type: "food",    coords: [39.9534,-75.1590], note: "Famous roast pork" },
+          { time: "14:00", name: "Independence Hall",     type: "landmark", coords: [39.9489,-75.1499] },
+          { time: "14:45", name: "Liberty Bell",          type: "landmark", coords: [39.9496,-75.1503] },
+          { time: "15:30", name: "Elfreth's Alley",       type: "landmark", coords: [39.9527,-75.1434], note: "Oldest street in USA" },
+          { time: "17:00", name: "Penn's Landing",        type: "landmark", coords: [39.9459,-75.1411] },
+          { time: "18:00", name: "Spruce Street Harbor Park",type: "rooftop",coords: [39.9430,-75.1406], note: "Hammocks & lights" }
+        ]
+      },
+      {
+        date: "May 14",
+        title: "Art, walls & cheesesteaks",
+        tip: "Decide: Pat's or Geno's? (Or honor both — they're across the street.)",
+        dayColor: "#a866d6",
+        activities: [
+          { time: "09:30", name: "Eastern State Penitentiary", type: "museum",   coords: [39.9685,-75.1727] },
+          { time: "11:30", name: "Philadelphia's Magic Gardens",type: "museum",  coords: [39.9419,-75.1592] },
+          { time: "13:00", name: "Angelo's Pizzeria",           type: "food",    coords: [39.9340,-75.1590] },
+          { time: "14:30", name: "Pat's King of Steaks",        type: "food",    coords: [39.9338,-75.1586], note: "Original cheesesteak" },
+          { time: "15:00", name: "Geno's Steaks",               type: "food",    coords: [39.9339,-75.1580], note: "Neon rival" }
+        ]
+      }
+    ]
+  },
+
+  dc: {
+    name: "Washington DC",
+    color: "#0e7c66",
+    center: [38.8895, -77.0353],
+    zoom: 13,
+    days: [
+      {
+        date: "May 15",
+        title: "National Mall marathon",
+        tip: "Walk the Mall west-to-east at sunset — every monument looks magical.",
+        dayColor: "#0e7c66",
+        activities: [
+          { time: "08:30", name: "Arlington Cemetery",   type: "landmark", coords: [38.8783,-77.0687] },
+          { time: "10:30", name: "Pentagon City",        type: "shopping", coords: [38.8626,-77.0593] },
+          { time: "12:00", name: "Smithsonian Castle",   type: "museum",   coords: [38.8889,-77.0260] },
+          { time: "13:00", name: "Washington Monument",  type: "landmark", coords: [38.8895,-77.0353] },
+          { time: "14:00", name: "WWII Memorial",        type: "landmark", coords: [38.8894,-77.0404] },
+          { time: "14:45", name: "Lincoln Memorial",     type: "landmark", coords: [38.8893,-77.0502] },
+          { time: "15:30", name: "Vietnam Memorial",     type: "landmark", coords: [38.8910,-77.0477] },
+          { time: "16:00", name: "Korea Memorial",       type: "landmark", coords: [38.8877,-77.0475] },
+          { time: "18:30", name: "The Wharf",            type: "food",     coords: [38.8793,-77.0223], note: "Waterfront dinner" }
+        ]
+      },
+      {
+        date: "May 16",
+        title: "Air, space & Old Town Alexandria",
+        tip: "Air & Space Museum is free but needs a timed entry pass — book ahead.",
+        dayColor: "#a866d6",
+        activities: [
+          { time: "09:30", name: "Air and Space Museum", type: "museum",   coords: [38.8881,-77.0199] },
+          { time: "12:30", name: "Alexandria",           type: "landmark", coords: [38.8048,-77.0469] },
+          { time: "13:30", name: "King Street",          type: "shopping", coords: [38.8048,-77.0430] },
+          { time: "15:00", name: "Alexandria Waterfront",type: "landmark", coords: [38.8034,-77.0400] },
+          { time: "16:00", name: "The Spite House",      type: "landmark", coords: [38.8056,-77.0434], note: "Narrowest house in USA" }
+        ]
+      }
+    ]
+  },
+
+  sa: {
+    name: "San Antonio",
+    color: "#d4a12a",
+    center: [29.4241, -98.4936],
+    zoom: 12,
+    days: []
+  }
+};
+
+/* =========================================================
+   UTILITIES
+========================================================= */
+const $  = (s,p=document) => p.querySelector(s);
+const $$ = (s,p=document) => [...p.querySelectorAll(s)];
+
+const TYPE_META = {
+  food:     { icon: "fa-utensils",    label: "Foodie 🍔",     c: "#c9472a" },
+  landmark: { icon: "fa-monument",    label: "Landmark 🏛️",   c: "#2a62c9" },
+  shopping: { icon: "fa-bag-shopping",label: "Shopping 🛍️",   c: "#a83db3" },
+  museum:   { icon: "fa-palette",     label: "Museum 🎨",     c: "#7b5d00" },
+  rooftop:  { icon: "fa-martini-glass",label:"Rooftop 🌇",    c: "#0e7c66" }
+};
+
+function showToast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* =========================================================
+   COUNTDOWN + PROGRESS
+========================================================= */
+function updateCountdown() {
+  const start = new Date("2026-05-07T00:00:00");
+  const end   = new Date("2026-05-16T23:59:59");
+  const now   = new Date();
+  const oneDay = 1000 * 60 * 60 * 24;
+
+  const diff = Math.ceil((start - now) / oneDay);
+  $("#cdNumber").textContent = diff > 0 ? diff : (now <= end ? "🟢" : "Done");
+
+  let pct = 0;
+  if (now < start) {
+    const total = start - new Date("2026-01-01");
+    const done  = now - new Date("2026-01-01");
+    pct = Math.max(0, Math.min(100, (done / total) * 100));
+  } else if (now > end) {
+    pct = 100;
+  } else {
+    pct = 100 * (now - start) / (end - start);
+  }
+  setTimeout(() => { $("#progressBar").style.width = pct + "%"; }, 200);
+}
+updateCountdown();
+
+/* =========================================================
+   RENDER TIMELINE (accordions)
+========================================================= */
+function renderTimeline(cityKey) {
+  const city = TRIP[cityKey];
+  const host = $(`#timeline-${cityKey}`);
+  if (!host || !city.days.length) return;
+
+  host.innerHTML = city.days.map((day, i) => {
+    const acts = day.activities.map(a => `
+      <div class="activity" data-lat="${a.coords[0]}" data-lng="${a.coords[1]}" data-name="${a.name}">
+        <div class="time">${a.time}</div>
+        <div class="info">
+          <b>${a.name}</b>
+          <span>${a.note || TYPE_META[a.type]?.label || ""}</span>
+        </div>
+        <span class="badge ${a.type}">
+          <i class="fa-solid ${TYPE_META[a.type]?.icon || "fa-location-dot"}"></i>
+          ${TYPE_META[a.type]?.label.split(" ")[0] || a.type}
+        </span>
+      </div>
+    `).join("");
+
+    const walking = (day.activities.length * 1.3).toFixed(1);
+
+    return `
+      <article class="day ${i===0 ? "open" : ""}" style="--hero-a:${day.dayColor}; --hero-b:${city.color};">
+        <button class="day-head" type="button">
+          <div class="day-badge"><b>${day.date.split(" ")[1]}</b><small>${day.date.split(" ")[0]}</small></div>
+          <div class="day-title">
+            <h4>${day.title}</h4>
+            <p>${day.activities.length} stops · ~${walking} km walking</p>
+          </div>
+          <div class="day-toggle"><i class="fa-solid fa-chevron-down"></i></div>
+        </button>
+        <div class="day-body">
+          <div>
+            <div class="day-body-inner">
+              ${acts}
+              ${day.tip ? `<div class="tips"><b><i class="fa-solid fa-lightbulb"></i> Tip:</b> ${day.tip}</div>` : ""}
+            </div>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  // accordion behavior
+  $$(".day-head", host).forEach(btn => {
+    btn.addEventListener("click", () => btn.parentElement.classList.toggle("open"));
+  });
+
+  // activity → focus map marker
+  $$(".activity", host).forEach(el => {
+    el.addEventListener("click", () => {
+      const lat = parseFloat(el.dataset.lat);
+      const lng = parseFloat(el.dataset.lng);
+      const name = el.dataset.name;
+      if (!isNaN(lat) && window.__map) {
+        window.__map.flyTo([lat, lng], 16, { duration: 1.2 });
+        const m = (window.__markers || []).find(mk => mk._popupName === name);
+        if (m) m.openPopup();
+      }
+    });
+  });
+
+  // places counter
+  const cnt = $(`[data-count="${cityKey}"]`);
+  if (cnt) cnt.textContent = city.days.reduce((s,d)=>s+d.activities.length,0);
+}
+
+Object.keys(TRIP).forEach(renderTimeline);
+
+/* =========================================================
+   MAP
+========================================================= */
+const map = L.map("map", { zoomControl: true, attributionControl: true })
+  .setView(TRIP.ny.center, TRIP.ny.zoom);
+
+L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+  attribution: '© OpenStreetMap contributors © CARTO',
+  maxZoom: 19
+}).addTo(map);
+
+window.__map = map;
+window.__markers = [];
+let __routeLayers = [];
+
+function clearMap() {
+  window.__markers.forEach(m => map.removeLayer(m));
+  window.__markers = [];
+  __routeLayers.forEach(l => map.removeLayer(l));
+  __routeLayers = [];
+}
+
+function makeIcon(color, label) {
+  return L.divIcon({
+    className: "",
+    html: `<div class="pin" style="--c:${color}"><span>${label}</span></div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -26]
+  });
+}
+
+function loadCityOnMap(cityKey) {
+  const city = TRIP[cityKey];
+  clearMap();
+
+  $("#mapTitle").textContent = city.name;
+  $("#mapSub").textContent   = city.days.length
+    ? `${city.days.reduce((s,d)=>s+d.activities.length,0)} stops · ${city.days.length} days`
+    : "Planning soon";
+
+  if (!city.days.length) {
+    map.flyTo(city.center, city.zoom, { duration: 1.2 });
+    $("#legend").innerHTML = `<span class="dot" style="--c:${city.color}">Start planning ✈️</span>`;
+    return;
+  }
+
+  const allPts = [];
+  city.days.forEach((day, dIdx) => {
+    const color = day.dayColor;
+    const pts = [];
+
+    day.activities.forEach((a, aIdx) => {
+      const m = L.marker(a.coords, { icon: makeIcon(color, aIdx+1) }).addTo(map);
+      m._popupName = a.name;
+      m.bindPopup(`
+        <div>
+          <div class="popup-title">${a.name}</div>
+          <div class="popup-meta">${day.date} · ${a.time}</div>
+          <div class="popup-meta" style="margin-top:4px">
+            <i class="fa-solid ${TYPE_META[a.type]?.icon}" style="color:${TYPE_META[a.type]?.c}"></i>
+            ${TYPE_META[a.type]?.label || a.type}
+            ${a.note ? ` · ${a.note}` : ""}
+          </div>
+        </div>
+      `);
+      window.__markers.push(m);
+      pts.push(a.coords);
+      allPts.push(a.coords);
+    });
+
+    // Route line per day
+    if (pts.length > 1) {
+      const line = L.polyline(pts, {
+        color, weight: 3, opacity: .6, dashArray: "6,8", lineJoin: "round"
+      }).addTo(map);
+      __routeLayers.push(line);
+    }
+  });
+
+  if (allPts.length > 0) {
+    const bounds = L.latLngBounds(allPts);
+    map.flyToBounds(bounds, { padding: [40, 40], duration: 1.2, maxZoom: 15 });
+  }
+
+  // Legend per day
+  $("#legend").innerHTML = city.days.map(d =>
+    `<span class="dot" style="--c:${d.dayColor}">${d.date}</span>`
+  ).join("");
+}
+
+loadCityOnMap("ny");
+
+/* =========================================================
+   TABS
+========================================================= */
+function switchTab(city) {
+  $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.city === city));
+  $$(".city-section").forEach(sec => sec.classList.toggle("hidden", sec.id !== `city-${city}`));
+  const sec = $(`#city-${city}`);
+  if (sec) { sec.classList.remove("fade-in"); void sec.offsetWidth; sec.classList.add("fade-in"); }
+
+  loadCityOnMap(city);
+  localStorage.setItem("usaTrip.lastTab", city);
+
+  const names = { ny: "New York", ph: "Philadelphia", dc: "Washington DC", sa: "San Antonio" };
+  $("#statNext").textContent = names[city];
+}
+
+$$(".tab").forEach(t => t.addEventListener("click", () => switchTab(t.dataset.city)));
+
+const savedTab = localStorage.getItem("usaTrip.lastTab");
+if (savedTab && TRIP[savedTab]) switchTab(savedTab);
+
+/* =========================================================
+   CHECKLIST — persisted
+========================================================= */
+const CHECK_KEY = "usaTrip.checklist";
+const checkState = JSON.parse(localStorage.getItem(CHECK_KEY) || "{}");
+
+$$("#checklist li").forEach(li => {
+  const key = li.dataset.key;
+  const cb = li.querySelector("input");
+  cb.checked = !!checkState[key];
+  li.classList.toggle("done", cb.checked);
+  li.addEventListener("click", (e) => {
+    if (e.target.tagName !== "INPUT") cb.checked = !cb.checked;
+    checkState[key] = cb.checked;
+    li.classList.toggle("done", cb.checked);
+    localStorage.setItem(CHECK_KEY, JSON.stringify(checkState));
+  });
+});
+
+/* =========================================================
+   STATS — derive total places
+========================================================= */
+(function() {
+  let total = 0;
+  Object.values(TRIP).forEach(c => c.days.forEach(d => total += d.activities.length));
+  $("#statPlaces").textContent = total;
+})();
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+$("#btnExport").addEventListener("click", () => {
+  showToast("PDF export queued · check Downloads soon ✨");
+});
+$("#btnPrint").addEventListener("click", () => window.print());
+$("#btnTop").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+
+const fab = $("#fabTop");
+fab.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+window.addEventListener("scroll", () => {
+  fab.classList.toggle("show", window.scrollY > 400);
+});
+
+/* =========================================================
+   Tooltips for badges (native title works; also hover animation)
+========================================================= */
+document.addEventListener("mouseover", e => {
+  const b = e.target.closest(".badge");
+  if (b && !b.title) {
+    const cls = [...b.classList].find(c => TYPE_META[c]);
+    if (cls) b.title = TYPE_META[cls].label;
+  }
+});
+</script>
+</body>
+</html>
