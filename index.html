@@ -227,6 +227,22 @@
   .checklist li:last-child { border-bottom: 0; }
   .checklist input[type="checkbox"] { accent-color: var(--accent); width:16px; height:16px; }
   .checklist li.done span { text-decoration: line-through; color: var(--muted); }
+  .checklist li[data-pending]:not(.done) {
+    background: linear-gradient(90deg, rgba(212,161,42,.12), transparent 70%);
+  }
+  .checklist li[data-pending]:not(.done) span::after {
+    content: "PENDING";
+    margin-left: 8px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(212,161,42,.18);
+    color: #8a5a00;
+    border: 1px solid rgba(212,161,42,.45);
+    vertical-align: 1px;
+  }
 
   .sidebtns { display:flex; flex-direction:column; gap:8px; }
   .btn {
@@ -432,6 +448,17 @@
   .badge.shopping { color:#a83db3; }
   .badge.rooftop  { color:#0e7c66; }
   .badge.museum   { color:#7b5d00; }
+  .badge.flight   { color:#3a78c2; }
+  .badge.train    { color:#5b6cff; }
+  .badge.airport  { color:#555;    }
+  .badge.hotel    { color:#a04d8c; }
+  .badge.travel   { color:#444;    }
+  .badge.pending  {
+    color:#8a5a00;
+    background: rgba(212,161,42,.12);
+    border-color: rgba(212,161,42,.42);
+  }
+  .activity.is-checked .badge.pending { display: none; }
 
   .tips {
     padding: 14px 16px;
@@ -904,12 +931,12 @@
       <div class="logo"><i class="fa-solid fa-plane-departure"></i></div>
       <div>
         <h1>USA TRIP · MAY 2026</h1>
-        <div class="sub">New York · Philadelphia · Washington DC · San Antonio</div>
+        <div class="sub">Cali · NYC · Philadelphia · Washington DC · San Antonio · Austin</div>
       </div>
     </div>
 
     <div class="status">
-      <div class="pill"><i class="fa-regular fa-calendar"></i> <span>May 7 → May 16, 2026</span></div>
+      <div class="pill"><i class="fa-regular fa-calendar"></i> <span>May 6 → May 24, 2026</span></div>
       <div class="pill dot">Planning Mode</div>
       <div class="pill countdown">
         <b id="cdNumber">—</b><span>days to go</span>
@@ -929,22 +956,29 @@
       <h3><i class="fa-solid fa-chart-simple"></i> Trip Stats</h3>
       <div class="stats-grid">
         <div class="stat"><small>Cities</small><b>4</b></div>
-        <div class="stat"><small>Total days</small><b id="statDays">10</b></div>
+        <div class="stat"><small>Total days</small><b id="statDays">19</b></div>
         <div class="stat span2"><small>Next destination</small><b id="statNext">New York</b></div>
         <div class="stat"><small>Places</small><b id="statPlaces">0</b></div>
-        <div class="stat"><small>Visited</small><b>3 <span style="font-size:12px;color:var(--muted)">(mock)</span></b></div>
+        <div class="stat"><small>Route</small><b style="font-size:13px;">CLO → BOG → JFK · DCA → BNA → SAT · AUS → PTY → CLO</b></div>
       </div>
     </div>
 
     <div class="card fade-in">
       <h3><i class="fa-solid fa-list-check"></i> Travel Checklist</h3>
       <ul class="checklist" id="checklist">
-        <li data-key="passport"><input type="checkbox"><i class="fa-solid fa-passport" style="color:var(--muted)"></i><span>Passport</span></li>
-        <li data-key="tickets"><input type="checkbox"><i class="fa-solid fa-ticket" style="color:var(--muted)"></i><span>Tickets</span></li>
-        <li data-key="hotels"><input type="checkbox"><i class="fa-solid fa-hotel" style="color:var(--muted)"></i><span>Hotels</span></li>
+        <li data-key="passport"><input type="checkbox"><i class="fa-solid fa-passport" style="color:var(--muted)"></i><span>Passports</span></li>
         <li data-key="insurance"><input type="checkbox"><i class="fa-solid fa-shield-heart" style="color:var(--muted)"></i><span>Travel Insurance</span></li>
+        <li data-key="cards"><input type="checkbox"><i class="fa-solid fa-credit-card" style="color:var(--muted)"></i><span>Cards / Cash</span></li>
         <li data-key="powerbank"><input type="checkbox"><i class="fa-solid fa-battery-full" style="color:var(--muted)"></i><span>Power Bank</span></li>
-        <li data-key="cards"><input type="checkbox"><i class="fa-solid fa-credit-card" style="color:var(--muted)"></i><span>Cards</span></li>
+        <li data-key="checkin-av"><input type="checkbox"><i class="fa-solid fa-plane" style="color:var(--muted)"></i><span>Check-in Avianca AV9564 / AV020</span></li>
+        <li data-key="transfer-jfk-paterson" data-pending><input type="checkbox"><i class="fa-solid fa-car-side" style="color:var(--muted)"></i><span>Transporte JFK → Paterson</span></li>
+        <li data-key="train-nyc-philly" data-pending><input type="checkbox"><i class="fa-solid fa-train" style="color:var(--muted)"></i><span>Comprar tren NYC → Philadelphia</span></li>
+        <li data-key="train-philly-dc" data-pending><input type="checkbox"><i class="fa-solid fa-train" style="color:var(--muted)"></i><span>Comprar tren Philadelphia → DC</span></li>
+        <li data-key="checkin-wn"><input type="checkbox"><i class="fa-solid fa-plane" style="color:var(--muted)"></i><span>Check-in Southwest WN2314 / WN2968</span></li>
+        <li data-key="transfer-dc-airport" data-pending><input type="checkbox"><i class="fa-solid fa-car-side" style="color:var(--muted)"></i><span>Transporte DC lodging → DCA</span></li>
+        <li data-key="checkin-cm"><input type="checkbox"><i class="fa-solid fa-plane" style="color:var(--muted)"></i><span>Check-in Copa CM716 / CM323</span></li>
+        <li data-key="transfer-sa-austin" data-pending><input type="checkbox"><i class="fa-solid fa-car-side" style="color:var(--muted)"></i><span>Traslado San Antonio → Austin</span></li>
+        <li data-key="cm323-arrival" data-pending><input type="checkbox"><i class="fa-solid fa-clock" style="color:var(--muted)"></i><span>Hora de llegada CM323 a Cali</span></li>
       </ul>
     </div>
 
@@ -962,10 +996,10 @@
   <main class="main">
 
     <div class="tabs fade-in" id="tabs">
-      <button class="tab active" data-city="ny"><i class="fa-solid fa-apple-whole"></i> New York <span class="chip">6d</span></button>
+      <button class="tab active" data-city="ny"><i class="fa-solid fa-apple-whole"></i> New York <span class="chip">7d</span></button>
       <button class="tab" data-city="ph"><i class="fa-solid fa-bell"></i> Philadelphia <span class="chip">2d</span></button>
       <button class="tab" data-city="dc"><i class="fa-solid fa-landmark-dome"></i> Washington <span class="chip">2d</span></button>
-      <button class="tab" data-city="sa"><i class="fa-solid fa-guitar"></i> San Antonio <span class="chip">Open</span></button>
+      <button class="tab" data-city="sa"><i class="fa-solid fa-guitar"></i> San Antonio · Austin <span class="chip">8d</span></button>
     </div>
 
     <div id="day-filter" class="day-filter fade-in" hidden></div>
@@ -1058,9 +1092,10 @@
       <div class="city-hero" data-city="sa">
         <div>
           <small style="opacity:.85; letter-spacing:.2em; font-size:11px;">TEXAS SOUL</small>
-          <h2>San Antonio</h2>
+          <h2>San Antonio · Austin</h2>
           <div class="meta">
-            <div class="pill"><i class="fa-regular fa-calendar"></i> Open dates</div>
+            <div class="pill"><i class="fa-regular fa-calendar"></i> May 17 → May 24</div>
+            <div class="pill"><i class="fa-regular fa-moon"></i> 7 nights</div>
             <div class="pill"><i class="fa-solid fa-house"></i> Home: La Vernia, TX</div>
             <div class="pill"><i class="fa-solid fa-school"></i> St Mary's University</div>
           </div>
@@ -1072,10 +1107,10 @@
       </div>
 
       <div class="qstats" style="margin-top:16px;">
-        <div class="qstat"><small>Routine</small><b><i class="fa-solid fa-repeat"></i>Mon–Fri</b></div>
+        <div class="qstat"><small>Days</small><b><i class="fa-solid fa-repeat"></i>8</b></div>
         <div class="qstat"><small>Commute</small><b><i class="fa-solid fa-car"></i>35–50 min</b></div>
         <div class="qstat"><small>Places</small><b><i class="fa-solid fa-location-dot"></i><span data-count="sa">—</span></b></div>
-        <div class="qstat"><small>Vibe</small><b><i class="fa-solid fa-guitar"></i>Texan</b></div>
+        <div class="qstat"><small>Closing</small><b><i class="fa-solid fa-plane-departure"></i>Austin</b></div>
       </div>
 
       <div class="timeline" id="timeline-sa" style="margin-top:16px;"></div>
@@ -1115,22 +1150,32 @@ const TRIP = {
     zoom: 12,
     days: [
       {
+        date: "May 6",
+        title: "Cali → Bogotá → NYC (overnight)",
+        tip: "Llega a CLO con 3h de anticipación. AV9564 sale 20:45; AV020 sale Bogotá 23:15 hacia JFK.",
+        dayColor: "#888888",
+        activities: [
+          { time: "17:30", name: "Home — Cali, Colombia",   type: "landmark", coords: [3.4516,-76.5320], note: "Salida hacia el aeropuerto · 3h antes del vuelo", mapSkip: true },
+          { time: "18:30", name: "Cali Airport (CLO)",      type: "airport",  coords: [3.5432,-76.3816], note: "Check-in Avianca AV9564 · migración", mapSkip: true },
+          { time: "20:45", name: "AV9564 Cali → Bogotá",    type: "flight",   coords: [3.5432,-76.3816], note: "Salida 20:45 CLO · llegada Bogotá 21:50", mapSkip: true },
+          { time: "21:50", name: "Bogotá Airport (BOG)",    type: "airport",  coords: [4.7016,-74.1469], note: "Escala internacional · ~1h25m", mapSkip: true },
+          { time: "23:15", name: "AV020 Bogotá → NYC",      type: "flight",   coords: [4.7016,-74.1469], note: "Vuelo nocturno hacia JFK · llegada 06:05 May 7", mapSkip: true }
+        ]
+      },
+      {
         date: "May 7",
-        title: "Midtown Icons · Central Park · MET",
-        tip: "Walkable day. Hit MET before its 5 PM close — Midtown first so you land running next to Port Authority.",
+        title: "Arrival NYC · Central Park · AMNH (light day)",
+        tip: "Día liviano por la llegada internacional. No salir de turismo antes del mediodía.",
         dayColor: "#ff5a3c",
         activities: [
-          { time: "07:00", name: "Home — Paterson, NJ",     type: "landmark", coords: [40.9033,-74.1375], note: "Depart · Bus 190/161/163 → Port Authority" },
-          { time: "08:15", name: "Bryant Park",             type: "landmark", coords: [40.7536,-73.9832], note: "2 min walk from Port Authority" },
-          { time: "08:45", name: "NY Public Library",       type: "landmark", coords: [40.7532,-73.9822], note: "Exterior · lion statues" },
-          { time: "09:30", name: "5th Avenue",              type: "shopping", coords: [40.7624,-73.9738], note: "Flagship stores on the way up" },
-          { time: "10:15", name: "St Patrick's Cathedral",  type: "landmark", coords: [40.7585,-73.9759], note: "Quick interior stop" },
-          { time: "10:45", name: "Rockefeller Center",      type: "landmark", coords: [40.7587,-73.9787], note: "Plaza + flags photo" },
-          { time: "11:30", name: "M&M Store Times Square",  type: "shopping", coords: [40.7587,-73.9855], note: "Quick loop" },
-          { time: "12:15", name: "HP Store · Flatiron",     type: "shopping", coords: [40.7415,-73.9890], note: "Optional detour" },
-          { time: "13:30", name: "Central Park South",      type: "landmark", coords: [40.7660,-73.9796], note: "Lunch + stroll toward MET" },
-          { time: "15:00", name: "MET Museum",              type: "museum",   coords: [40.7794,-73.9632], note: "Enter before 5 PM close" },
-          { time: "18:00", name: "Return · Port Authority", type: "landmark", coords: [40.7573,-73.9902], note: "Subway E → Bus 190 → Paterson" }
+          { time: "06:05", name: "Arrival JFK Airport",                 type: "airport",  coords: [40.6413,-73.7781], note: "AV020 aterriza · migración + maletas (~1.5h)" },
+          { time: "08:00", name: "Transfer JFK → Paterson, NJ",         type: "travel",   coords: [40.9033,-74.1375], note: "Uber o AirTrain+NJ Transit · ~1.5–2h", pending: true, checkKey: "transfer-jfk-paterson" },
+          { time: "10:30", name: "Home — Paterson, NJ",                 type: "hotel",    coords: [40.9033,-74.1375], note: "Dejar maletas · ducha · pausa" },
+          { time: "12:00", name: "Bus 190 → Port Authority",            type: "travel",   coords: [40.7573,-73.9902], note: "Salida tarde · primer bloque ligero" },
+          { time: "13:00", name: "Central Park South",                  type: "landmark", coords: [40.7660,-73.9796], note: "Almuerzo ligero + paseo corto" },
+          { time: "14:30", name: "American Museum of Natural History",  type: "museum",   coords: [40.7813,-73.9740], note: "Museo de ciencia · ~2.5h · cierra 17:30" },
+          { time: "17:30", name: "Cena ligera · Upper West Side",       type: "food",     coords: [40.7870,-73.9754], note: "Algo cercano · sin estresar" },
+          { time: "19:30", name: "Return · Port Authority",             type: "landmark", coords: [40.7573,-73.9902], note: "Bus 190 → Paterson · descansar" }
         ]
       },
       {
@@ -1190,26 +1235,32 @@ const TRIP = {
       },
       {
         date: "May 11",
-        title: "Bronx · Zoo + optional Times Square",
-        tip: "Bronx Zoo is a full morning — pace yourself. Times Square after dark is the best version.",
+        title: "Bronx Zoo · Midtown Icons",
+        tip: "Bronx Zoo es mañana completa. Midtown desde 15:30, terminando con Times Square al atardecer.",
         dayColor: "#2a62c9",
         activities: [
-          { time: "08:00", name: "Home — Paterson, NJ",     type: "landmark", coords: [40.9033,-74.1375], note: "Depart · Bus → Port Authority" },
-          { time: "10:30", name: "Bronx Zoo",               type: "landmark", coords: [40.8506,-73.8770], note: "Subway 2/5 to West Farms Sq" },
-          { time: "14:30", name: "Manhattan return",        type: "landmark", coords: [40.7580,-73.9855], note: "Subway downtown" },
-          { time: "15:30", name: "Times Square",            type: "landmark", coords: [40.7580,-73.9855], note: "Optional · best at dusk" },
-          { time: "19:00", name: "Return · Port Authority", type: "landmark", coords: [40.7573,-73.9902], note: "Bus 190 → Paterson" }
+          { time: "08:00", name: "Home — Paterson, NJ",        type: "landmark", coords: [40.9033,-74.1375], note: "Depart · Bus → Port Authority" },
+          { time: "10:30", name: "Bronx Zoo",                  type: "landmark", coords: [40.8506,-73.8770], note: "Subway 2/5 to West Farms Sq" },
+          { time: "14:30", name: "Subway → Midtown",           type: "travel",   coords: [40.7536,-73.9832], note: "Express south · ~30–40 min" },
+          { time: "15:30", name: "Bryant Park",                type: "landmark", coords: [40.7536,-73.9832], note: "Pausa + café" },
+          { time: "16:00", name: "NY Public Library",          type: "landmark", coords: [40.7532,-73.9822], note: "Lion statues · Rose Reading Room" },
+          { time: "16:30", name: "5th Avenue",                 type: "shopping", coords: [40.7624,-73.9738], note: "Flagship stores" },
+          { time: "17:15", name: "St Patrick's Cathedral",     type: "landmark", coords: [40.7585,-73.9759], note: "Quick interior stop" },
+          { time: "17:45", name: "Rockefeller Center",         type: "landmark", coords: [40.7587,-73.9787], note: "Plaza + flags photo" },
+          { time: "18:30", name: "M&M Store · Times Square",   type: "shopping", coords: [40.7587,-73.9855], note: "Times Square al atardecer" },
+          { time: "20:30", name: "Return · Port Authority",    type: "landmark", coords: [40.7573,-73.9902], note: "Bus 190 → Paterson" }
         ]
       },
       {
         date: "May 12",
-        title: "NJ Shopping · NYC afternoon · Broadway",
-        tip: "Stay in NJ for the outlet morning — rest before Broadway at night. Last bus 190 ~22:30.",
+        title: "American Dream · Rest · Broadway",
+        tip: "Mañana en NJ outlet, descanso, Broadway en la noche. Last bus 190 ~22:30.",
         dayColor: "#6b5cff",
         activities: [
           { time: "09:00", name: "Home — Paterson, NJ",     type: "landmark", coords: [40.9033,-74.1375], note: "Depart · short drive/bus" },
           { time: "10:00", name: "American Dream Mall",     type: "shopping", coords: [40.8137,-74.0719], note: "Mega outlet · 4+ hours" },
           { time: "14:30", name: "Rest at Home",            type: "landmark", coords: [40.9033,-74.1375], note: "Recharge before Broadway" },
+          { time: "16:30", name: "HP Store · Flatiron",     type: "shopping", coords: [40.7415,-73.9890], note: "Optional · si hay tiempo antes del show" },
           { time: "17:30", name: "Port Authority (NYC)",    type: "landmark", coords: [40.7573,-73.9902], note: "Bus → Manhattan" },
           { time: "18:15", name: "Times Square dinner",     type: "food",     coords: [40.7580,-73.9855], note: "Pre-show meal" },
           { time: "19:30", name: "Broadway Show",           type: "landmark", coords: [40.7590,-73.9845], note: "Theatre district" },
@@ -1227,27 +1278,30 @@ const TRIP = {
     days: [
       {
         date: "May 13",
-        title: "Core City · Historic Core · Waterfront",
-        tip: "Drop bags first so the afternoon is unburdened. End at Spruce Street Harbor at sunset.",
+        title: "NYC → Philadelphia · Historic Core",
+        tip: "Tren NYC → Philly temprano (Amtrak/NJT+SEPTA). Drop bags ~09:30 y luego día histórico.",
         dayColor: "#6b5cff",
         activities: [
-          { time: "09:30", name: "30th Street Station",       type: "landmark", coords: [39.9566,-75.1820], note: "Arrive from NYC" },
-          { time: "10:00", name: "Airbnb — Montrose St",      type: "landmark", coords: [39.9394,-75.1747], note: "Drop bags · 1813 Montrose St" },
-          { time: "10:45", name: "Rowhouses walk",            type: "landmark", coords: [39.9420,-75.1720], note: "Graduate Hospital → Center City" },
-          { time: "11:15", name: "Rittenhouse Square",        type: "landmark", coords: [39.9494,-75.1715], note: "Quick loop" },
-          { time: "12:00", name: "City Hall",                 type: "landmark", coords: [39.9526,-75.1652], note: "Walk-through · tower" },
-          { time: "12:30", name: "Dilworth Park",             type: "landmark", coords: [39.9527,-75.1664], note: "Fountains + shade" },
-          { time: "13:00", name: "Reading Terminal Market",   type: "food",     coords: [39.9534,-75.1590], note: "Roast pork sandwich" },
-          { time: "14:30", name: "Independence Hall",         type: "landmark", coords: [39.9489,-75.1499], note: "Free timed ticket" },
-          { time: "15:15", name: "Liberty Bell",              type: "landmark", coords: [39.9496,-75.1503], note: "5 min walk north" },
-          { time: "16:00", name: "Elfreth's Alley",           type: "landmark", coords: [39.9527,-75.1434], note: "Oldest street in USA" },
-          { time: "17:00", name: "Penn's Landing",            type: "landmark", coords: [39.9459,-75.1411], note: "Waterfront stroll" },
-          { time: "18:00", name: "Spruce Street Harbor Park", type: "rooftop",  coords: [39.9430,-75.1406], note: "Sunset · hammocks + lights" }
+          { time: "05:30", name: "Depart Paterson → Penn Station",   type: "travel", coords: [40.7506,-73.9935], note: "Uber/transit hacia Penn Station NYC" },
+          { time: "06:30", name: "NYC Penn Station — train to Philly", type: "train",  coords: [40.7506,-73.9935], note: "Comprar boleto NYC → Philly", pending: true, checkKey: "train-nyc-philly" },
+          { time: "08:00", name: "30th Street Station (Philadelphia)", type: "train",  coords: [39.9566,-75.1820], note: "Llegada Philadelphia" },
+          { time: "08:30", name: "Café & breakfast",                 type: "food",    coords: [39.9540,-75.1750], note: "Algo cerca de la estación" },
+          { time: "09:30", name: "Airbnb — Montrose St",             type: "hotel",   coords: [39.9394,-75.1747], note: "Drop bags · 1813 Montrose St" },
+          { time: "10:45", name: "Rowhouses walk",                   type: "landmark", coords: [39.9420,-75.1720], note: "Graduate Hospital → Center City" },
+          { time: "11:15", name: "Rittenhouse Square",               type: "landmark", coords: [39.9494,-75.1715], note: "Quick loop" },
+          { time: "12:00", name: "City Hall",                        type: "landmark", coords: [39.9526,-75.1652], note: "Walk-through · tower" },
+          { time: "12:30", name: "Dilworth Park",                    type: "landmark", coords: [39.9527,-75.1664], note: "Fountains + shade" },
+          { time: "13:00", name: "Reading Terminal Market",          type: "food",     coords: [39.9534,-75.1590], note: "Roast pork sandwich" },
+          { time: "14:30", name: "Independence Hall",                type: "landmark", coords: [39.9489,-75.1499], note: "Free timed ticket" },
+          { time: "15:15", name: "Liberty Bell",                     type: "landmark", coords: [39.9496,-75.1503], note: "5 min walk north" },
+          { time: "16:00", name: "Elfreth's Alley",                  type: "landmark", coords: [39.9527,-75.1434], note: "Oldest street in USA" },
+          { time: "17:00", name: "Penn's Landing",                   type: "landmark", coords: [39.9459,-75.1411], note: "Waterfront stroll" },
+          { time: "18:00", name: "Spruce Street Harbor Park",        type: "rooftop",  coords: [39.9430,-75.1406], note: "Sunset · hammocks + lights" }
         ]
       },
       {
         date: "May 14",
-        title: "Eastern State · Magic Gardens · South Philly Food",
+        title: "Eastern State · Magic Gardens · Cheesesteaks",
         tip: "ESP opens at 10 — go early. Pat's and Geno's are across the street; order one each and decide for yourself.",
         dayColor: "#a866d6",
         activities: [
@@ -1272,53 +1326,143 @@ const TRIP = {
     days: [
       {
         date: "May 15",
-        title: "National Mall marathon",
-        tip: "Walk the Mall west-to-east at sunset — every monument looks magical.",
+        title: "Philly → DC · National Mall",
+        tip: "Tren Philly → DC temprano. Llegada ~10:45, dejar maletas + lunch, Mall desde mediodía.",
         dayColor: "#0e7c66",
         activities: [
-          { time: "08:30", name: "Arlington Cemetery",   type: "landmark", coords: [38.8783,-77.0687] },
-          { time: "10:30", name: "Pentagon City",        type: "shopping", coords: [38.8626,-77.0593] },
-          { time: "12:00", name: "Smithsonian Castle",   type: "museum",   coords: [38.8889,-77.0260] },
-          { time: "13:00", name: "Washington Monument",  type: "landmark", coords: [38.8895,-77.0353] },
-          { time: "14:00", name: "WWII Memorial",        type: "landmark", coords: [38.8894,-77.0404] },
-          { time: "14:45", name: "Lincoln Memorial",     type: "landmark", coords: [38.8893,-77.0502] },
-          { time: "15:30", name: "Vietnam Memorial",     type: "landmark", coords: [38.8910,-77.0477] },
-          { time: "16:00", name: "Korea Memorial",       type: "landmark", coords: [38.8877,-77.0475] },
-          { time: "18:30", name: "The Wharf",            type: "food",     coords: [38.8793,-77.0223], note: "Waterfront dinner" }
+          { time: "08:00", name: "30th Street Station (Philly) — train to DC", type: "train",   coords: [39.9566,-75.1820], note: "Comprar boleto Philly → DC", pending: true, checkKey: "train-philly-dc" },
+          { time: "10:45", name: "Union Station, DC",            type: "train",   coords: [38.8975,-77.0079], note: "Llegada Washington DC" },
+          { time: "11:15", name: "Drop bags / hotel transfer",   type: "hotel",   coords: [38.8950,-77.0260], note: "Lodging cerca del Mall" },
+          { time: "12:15", name: "Lunch rápido",                 type: "food",    coords: [38.8935,-77.0260], note: "Cerca del National Mall" },
+          { time: "13:00", name: "Smithsonian Castle",           type: "museum",  coords: [38.8889,-77.0260], note: "Punto de partida del Mall" },
+          { time: "13:45", name: "Washington Monument",          type: "landmark", coords: [38.8895,-77.0353], note: "Vista 360 (si abre tickets)" },
+          { time: "14:30", name: "WWII Memorial",                type: "landmark", coords: [38.8894,-77.0404], note: "Reflecting pool start" },
+          { time: "15:15", name: "Lincoln Memorial",             type: "landmark", coords: [38.8893,-77.0502], note: "Escalinata + reflecting pool" },
+          { time: "16:00", name: "Vietnam Memorial",             type: "landmark", coords: [38.8910,-77.0477], note: "Walking · sombras suaves" },
+          { time: "16:30", name: "Korea Memorial",               type: "landmark", coords: [38.8877,-77.0475], note: "Cerca de Lincoln" },
+          { time: "18:30", name: "The Wharf",                    type: "food",     coords: [38.8793,-77.0223], note: "Cena en el waterfront" }
         ]
       },
       {
         date: "May 16",
-        title: "Air, space & Old Town Alexandria",
-        tip: "Air & Space Museum is free but needs a timed entry pass — book ahead.",
+        title: "Air & Space · Old Town Alexandria",
+        tip: "Air & Space necesita timed-entry. Alexandria es la estrella de la tarde — alárgalo.",
         dayColor: "#a866d6",
         activities: [
-          { time: "09:30", name: "Air and Space Museum", type: "museum",   coords: [38.8881,-77.0199] },
-          { time: "12:30", name: "Alexandria",           type: "landmark", coords: [38.8048,-77.0469] },
-          { time: "13:30", name: "King Street",          type: "shopping", coords: [38.8048,-77.0430] },
-          { time: "15:00", name: "Alexandria Waterfront",type: "landmark", coords: [38.8034,-77.0400] },
-          { time: "16:00", name: "The Spite House",      type: "landmark", coords: [38.8056,-77.0434], note: "Narrowest house in USA" }
+          { time: "09:00", name: "Air and Space Museum",            type: "museum",   coords: [38.8881,-77.0199], note: "Free timed-entry · book ahead" },
+          { time: "12:00", name: "Arlington Cemetery (optional)",   type: "landmark", coords: [38.8783,-77.0687], note: "Optional · si queda tiempo entre Air&Space y Alexandria" },
+          { time: "13:30", name: "Alexandria · King Street",        type: "shopping", coords: [38.8048,-77.0430], note: "Almuerzo + paseo histórico" },
+          { time: "15:00", name: "Alexandria Waterfront",           type: "landmark", coords: [38.8034,-77.0400], note: "Río Potomac · golden hour" },
+          { time: "16:00", name: "The Spite House",                 type: "landmark", coords: [38.8056,-77.0434], note: "Narrowest house in USA" },
+          { time: "18:30", name: "Cena en Alexandria",              type: "food",     coords: [38.8048,-77.0440], note: "Old Town · ambiente colonial" }
         ]
       }
     ]
   },
 
   sa: {
-    name: "San Antonio",
+    name: "San Antonio · Austin",
     color: "#d4a12a",
     center: [29.4241, -98.4936],
-    zoom: 10,
-    days: ["Mon", "Tue", "Wed", "Thu", "Fri"].map(d => ({
-      date: d,
-      title: "Commute · La Vernia ↔ St Mary's University",
-      tip: "Drive ~35–50 min each way depending on traffic. Leave by 07:00 to beat morning rush into San Antonio.",
-      dayColor: "#d4a12a",
-      activities: [
-        { time: "07:00", name: "Home — La Vernia, TX",    type: "landmark", coords: [29.3501,-98.1170], note: "Depart · 200 Great Oaks Ct" },
-        { time: "08:00", name: "St Mary's University",    type: "museum",   coords: [29.4632,-98.5420], note: "Classes · ~50 min drive in rush hour" },
-        { time: "17:30", name: "Return Home · La Vernia", type: "landmark", coords: [29.3501,-98.1170], note: "~35 min evening drive" }
-      ]
-    }))
+    zoom: 9,
+    days: [
+      {
+        date: "May 17",
+        title: "DC → San Antonio (vía Nashville)",
+        tip: "Salida muy temprano de DC. Aterrizaje 10:10 SAT — actividades suaves después de las 13:00.",
+        dayColor: "#d4a12a",
+        activities: [
+          { time: "04:30", name: "Lodging DC → DCA airport",   type: "travel",   coords: [38.8512,-77.0402], note: "Uber al aeropuerto · check-in 06:00", pending: true, mapSkip: true, checkKey: "transfer-dc-airport" },
+          { time: "06:00", name: "WN2314 DC → Nashville",      type: "flight",   coords: [38.8512,-77.0402], note: "Southwest · salida 06:00 DCA", mapSkip: true },
+          { time: "07:35", name: "Nashville BNA · escala",     type: "airport",  coords: [36.1263,-86.6774], note: "Conexión Southwest", mapSkip: true },
+          { time: "07:35", name: "WN2968 Nashville → SAT",     type: "flight",   coords: [36.1263,-86.6774], note: "Southwest · llegada SAT 10:10", mapSkip: true },
+          { time: "10:10", name: "San Antonio Airport (SAT)",  type: "airport",  coords: [29.5337,-98.4698], note: "Llegada · pickup transporte" },
+          { time: "11:30", name: "Home — La Vernia, TX",       type: "hotel",    coords: [29.3501,-98.1170], note: "Drop bags · 200 Great Oaks Ct" },
+          { time: "13:30", name: "Lunch · Tex-Mex",            type: "food",     coords: [29.4255,-98.4944], note: "Algo local cerca de River Walk" },
+          { time: "15:00", name: "River Walk (light)",         type: "landmark", coords: [29.4260,-98.4861], note: "Caminata suave · paseos en bote opcional" },
+          { time: "16:30", name: "The Alamo",                  type: "landmark", coords: [29.4260,-98.4862], note: "Si la energía alcanza · cierra ~17:30" },
+          { time: "19:00", name: "Return Home · La Vernia",    type: "landmark", coords: [29.3501,-98.1170], note: "Cena tranquila en casa" }
+        ]
+      },
+      {
+        date: "May 18",
+        title: "St Mary's University · routine",
+        tip: "Salir 07:00 para evitar tráfico. ~50 min hasta el campus.",
+        dayColor: "#d4a12a",
+        activities: [
+          { time: "07:00", name: "Home — La Vernia, TX",    type: "landmark", coords: [29.3501,-98.1170], note: "Depart · 200 Great Oaks Ct" },
+          { time: "08:00", name: "St Mary's University",    type: "museum",   coords: [29.4632,-98.5420], note: "Campus · ~50 min drive" },
+          { time: "17:30", name: "Return Home · La Vernia", type: "landmark", coords: [29.3501,-98.1170], note: "~35 min evening drive" }
+        ]
+      },
+      {
+        date: "May 19",
+        title: "St Mary's University · routine",
+        tip: "Día abierto · ajustar según calendario académico.",
+        dayColor: "#d4a12a",
+        activities: [
+          { time: "07:00", name: "Home — La Vernia, TX",    type: "landmark", coords: [29.3501,-98.1170], note: "Depart" },
+          { time: "08:00", name: "St Mary's University",    type: "museum",   coords: [29.4632,-98.5420], note: "Campus" },
+          { time: "17:30", name: "Return Home · La Vernia", type: "landmark", coords: [29.3501,-98.1170], note: "Evening drive" }
+        ]
+      },
+      {
+        date: "May 20",
+        title: "St Mary's University · routine",
+        tip: "Open planning · espacio para visitas o admin.",
+        dayColor: "#d4a12a",
+        activities: [
+          { time: "07:00", name: "Home — La Vernia, TX",    type: "landmark", coords: [29.3501,-98.1170], note: "Depart" },
+          { time: "08:00", name: "St Mary's University",    type: "museum",   coords: [29.4632,-98.5420], note: "Campus" },
+          { time: "17:30", name: "Return Home · La Vernia", type: "landmark", coords: [29.3501,-98.1170], note: "Evening drive" }
+        ]
+      },
+      {
+        date: "May 21",
+        title: "St Mary's University · routine",
+        tip: "Open planning.",
+        dayColor: "#d4a12a",
+        activities: [
+          { time: "07:00", name: "Home — La Vernia, TX",    type: "landmark", coords: [29.3501,-98.1170], note: "Depart" },
+          { time: "08:00", name: "St Mary's University",    type: "museum",   coords: [29.4632,-98.5420], note: "Campus" },
+          { time: "17:30", name: "Return Home · La Vernia", type: "landmark", coords: [29.3501,-98.1170], note: "Evening drive" }
+        ]
+      },
+      {
+        date: "May 22",
+        title: "St Mary's University · routine",
+        tip: "Open planning · viernes liviano.",
+        dayColor: "#d4a12a",
+        activities: [
+          { time: "07:00", name: "Home — La Vernia, TX",    type: "landmark", coords: [29.3501,-98.1170], note: "Depart" },
+          { time: "08:00", name: "St Mary's University",    type: "museum",   coords: [29.4632,-98.5420], note: "Campus" },
+          { time: "17:30", name: "Return Home · La Vernia", type: "landmark", coords: [29.3501,-98.1170], note: "Evening drive" }
+        ]
+      },
+      {
+        date: "May 23",
+        title: "Open planning · descanso o San Antonio",
+        tip: "Día sin commitments. Posible descanso o recorrido por San Antonio.",
+        dayColor: "#d4a12a",
+        activities: [
+          { time: "10:00", name: "Home — La Vernia, TX",   type: "landmark", coords: [29.3501,-98.1170], note: "Mañana relajada" },
+          { time: "13:00", name: "San Antonio (opcional)", type: "landmark", coords: [29.4260,-98.4861], note: "River Walk u otro plan abierto" }
+        ]
+      },
+      {
+        date: "May 24",
+        title: "Austin → Cali (vía Panamá)",
+        tip: "No actividades fuertes antes del vuelo. Solo traslado a Austin airport y vuelos Copa.",
+        dayColor: "#888888",
+        activities: [
+          { time: "11:00", name: "La Vernia → Austin Airport (AUS)", type: "travel",  coords: [30.1945,-97.6699], note: "Drive ~1h45 · llegar 13:30 al AUS", pending: true, checkKey: "transfer-sa-austin" },
+          { time: "13:30", name: "Austin Airport (AUS)",              type: "airport", coords: [30.1945,-97.6699], note: "Check-in Copa CM716" },
+          { time: "15:36", name: "CM716 Austin → Panamá",             type: "flight",  coords: [30.1945,-97.6699], note: "Copa · llegada Panamá 20:00" },
+          { time: "20:00", name: "Tocumen Airport (PTY)",             type: "airport", coords: [9.0714,-79.3835], note: "Escala internacional · ~2h", mapSkip: true },
+          { time: "21:55", name: "CM323 Panamá → Cali",               type: "flight",  coords: [9.0714,-79.3835], note: "Copa · llegada CLO pendiente", mapSkip: true, pending: true, checkKey: "cm323-arrival" }
+        ]
+      }
+    ]
   }
 };
 
@@ -1329,12 +1473,22 @@ const $  = (s,p=document) => p.querySelector(s);
 const $$ = (s,p=document) => [...p.querySelectorAll(s)];
 
 const TYPE_META = {
-  food:     { icon: "fa-utensils",    label: "Foodie 🍔",     c: "#c9472a" },
-  landmark: { icon: "fa-monument",    label: "Landmark 🏛️",   c: "#2a62c9" },
-  shopping: { icon: "fa-bag-shopping",label: "Shopping 🛍️",   c: "#a83db3" },
-  museum:   { icon: "fa-palette",     label: "Museum 🎨",     c: "#7b5d00" },
-  rooftop:  { icon: "fa-martini-glass",label:"Rooftop 🌇",    c: "#0e7c66" }
+  food:     { icon: "fa-utensils",          label: "Foodie 🍔",   c: "#c9472a" },
+  landmark: { icon: "fa-monument",          label: "Landmark 🏛️", c: "#2a62c9" },
+  shopping: { icon: "fa-bag-shopping",      label: "Shopping 🛍️", c: "#a83db3" },
+  museum:   { icon: "fa-palette",           label: "Museum 🎨",   c: "#7b5d00" },
+  rooftop:  { icon: "fa-martini-glass",     label: "Rooftop 🌇",  c: "#0e7c66" },
+  flight:   { icon: "fa-plane",             label: "Flight ✈️",   c: "#3a78c2" },
+  train:    { icon: "fa-train-subway",      label: "Train 🚆",    c: "#5b6cff" },
+  airport:  { icon: "fa-plane-arrival",     label: "Airport 🛬",  c: "#555555" },
+  hotel:    { icon: "fa-bed",               label: "Hotel 🏨",    c: "#a04d8c" },
+  travel:   { icon: "fa-route",             label: "Travel 🛣️",   c: "#444444" },
+  pending:  { icon: "fa-circle-exclamation",label: "Pending ⚠️",  c: "#d4a12a" }
 };
+
+function isTravelType(a) {
+  return a && /^(flight|train|airport|travel|hotel)$/.test(a.type);
+}
 
 /* =========================================================
    SMART ITINERARY — constants + helpers
@@ -1376,13 +1530,17 @@ function haversine([lat1, lng1], [lat2, lng2]) {
 }
 
 function dayWalkingKm(activities) {
-  const inCity = activities.filter(a => !isHomeActivity(a));
+  const inCity = activities.filter(a => !isHomeActivity(a) && !isTravelType(a));
   let km = 0;
   for (let i = 1; i < inCity.length; i++) {
     const d = haversine(inCity[i-1].coords, inCity[i].coords);
     km += d > 3 ? 0.8 : d; // long legs = transit, count minimal walking around stations
   }
   return km;
+}
+
+function isTravelDay(activities) {
+  return activities.length > 0 && activities.every(a => isHomeActivity(a) || isTravelType(a));
 }
 
 function effortLevel(km) {
@@ -1425,6 +1583,10 @@ let FILTERS = { ny: "all", ph: "all", dc: "all", sa: "all" };
 try { FILTERS = Object.assign(FILTERS, JSON.parse(localStorage.getItem(FILTERS_KEY) || "{}")); } catch(_) {}
 function saveFilters() { localStorage.setItem(FILTERS_KEY, JSON.stringify(FILTERS)); }
 
+const CHECK_KEY = "usaTrip.checklist";
+const checkState = JSON.parse(localStorage.getItem(CHECK_KEY) || "{}");
+function isCheckedKey(key) { return !!(key && checkState[key]); }
+
 const STATE = { city: "ny" };
 
 function showToast(msg) {
@@ -1439,8 +1601,8 @@ function showToast(msg) {
    COUNTDOWN + PROGRESS
 ========================================================= */
 function updateCountdown() {
-  const start = new Date("2026-05-07T00:00:00");
-  const end   = new Date("2026-05-16T23:59:59");
+  const start = new Date("2026-05-06T00:00:00");
+  const end   = new Date("2026-05-24T23:59:59");
   const now   = new Date();
   const oneDay = 1000 * 60 * 60 * 24;
 
@@ -1465,18 +1627,26 @@ updateCountdown();
    RENDER TIMELINE (accordions)
 ========================================================= */
 function renderActivity(a) {
-  const noteOrLabel = a.note || TYPE_META[a.type]?.label || "";
+  const meta = TYPE_META[a.type] || { icon: "fa-location-dot", label: a.type || "Stop" };
+  const noteOrLabel = a.note || meta.label || "";
+  const checked = isCheckedKey(a.checkKey);
+  const pendingPill = a.pending
+    ? `<span class="badge pending" title="Action pending"><i class="fa-solid fa-circle-exclamation"></i> Pending</span>`
+    : "";
+  const classes = ["activity"];
+  if (checked) classes.push("is-checked");
   return `
-    <div class="activity" data-lat="${a.coords[0]}" data-lng="${a.coords[1]}" data-name="${a.name}">
+    <div class="${classes.join(" ")}" data-lat="${a.coords[0]}" data-lng="${a.coords[1]}" data-name="${a.name}" ${a.mapSkip ? 'data-mapskip="1"' : ""} ${a.checkKey ? `data-checkkey="${a.checkKey}"` : ""}>
       <div class="time">${a.time}</div>
       <div class="info">
         <b>${a.name}</b>
         <span>${noteOrLabel}</span>
       </div>
       <div class="act-right">
+        ${pendingPill}
         <span class="badge ${a.type}">
-          <i class="fa-solid ${TYPE_META[a.type]?.icon || "fa-location-dot"}"></i>
-          ${TYPE_META[a.type]?.label.split(" ")[0] || a.type}
+          <i class="fa-solid ${meta.icon}"></i>
+          ${meta.label.split(" ")[0]}
         </span>
         <a class="nav-btn" href="${gmapsUrl(a.coords)}" target="_blank" rel="noopener" title="Navigate in Google Maps" data-no-fly aria-label="Navigate">
           <i class="fa-solid fa-location-arrow"></i>
@@ -1489,6 +1659,7 @@ function renderActivity(a) {
 function renderDayCard(cityKey, city, day, i) {
   const isSA = cityKey === "sa";
   const dayKey = `${cityKey}_${i}`;
+  const travelDay = isTravelDay(day.activities);
 
   const actsHtml = day.activities.map(renderActivity).join("");
   const walkKm = dayWalkingKm(day.activities);
@@ -1505,7 +1676,7 @@ function renderDayCard(cityKey, city, day, i) {
         </div>`).join("")}
     </div>` : "";
 
-  const walkHtml = isSA ? "" : `
+  const walkHtml = (isSA || travelDay || walkKm < 0.2) ? "" : `
     <div class="walk-stats">
       <div class="walk-card"><small>Walking</small><b>${walkKm.toFixed(1)} km</b></div>
       <div class="walk-card"><small>Est. Steps</small><b>${steps.toLocaleString()}</b></div>
@@ -1514,9 +1685,11 @@ function renderDayCard(cityKey, city, day, i) {
 
   const lastDay = localStorage.getItem(LAST_DAY_KEY);
   const isOpen = lastDay ? (lastDay === dayKey) : (i === 0);
-  const headerMeta = isSA
-    ? `${day.activities.length} stops · Drive commute`
-    : `${day.activities.length} stops · ${walkKm.toFixed(1)} km · ${eff}`;
+  const headerMeta = travelDay
+    ? `${day.activities.length} legs · Travel day ✈️`
+    : isSA
+      ? `${day.activities.length} stops · Drive commute`
+      : `${day.activities.length} stops · ${walkKm.toFixed(1)} km · ${eff}`;
 
   return `
     <article class="day ${isOpen ? "open" : ""}" data-city="${cityKey}" data-idx="${i}" style="--hero-a:${day.dayColor}; --hero-b:${city.color};">
@@ -1566,10 +1739,11 @@ function renderTimeline(cityKey) {
     });
   });
 
-  // activity → focus map marker (but not when clicking nav-btn)
+  // activity → focus map marker (but not when clicking nav-btn or for off-map legs)
   $$(".activity", host).forEach(el => {
     el.addEventListener("click", (e) => {
       if (e.target.closest("[data-no-fly]")) return;
+      if (el.dataset.mapskip === "1") return;
       const lat = parseFloat(el.dataset.lat);
       const lng = parseFloat(el.dataset.lng);
       const name = el.dataset.name;
@@ -1857,6 +2031,8 @@ function loadCityOnMap(cityKey) {
     const pts = [];
 
     day.activities.forEach((a, aIdx) => {
+      if (a.mapSkip) return;
+      const meta = TYPE_META[a.type] || { icon: "fa-location-dot", label: a.type || "Stop", c: color };
       const m = L.marker(a.coords, { icon: makeIcon(color, aIdx+1) }).addTo(map);
       m._popupName = a.name;
       m._dayIdx = dayIdx;
@@ -1865,8 +2041,8 @@ function loadCityOnMap(cityKey) {
           <div class="popup-title">${a.name}</div>
           <div class="popup-meta">${day.date} · ${a.time}</div>
           <div class="popup-meta" style="margin-top:4px">
-            <i class="fa-solid ${TYPE_META[a.type]?.icon}" style="color:${TYPE_META[a.type]?.c}"></i>
-            ${TYPE_META[a.type]?.label || a.type}
+            <i class="fa-solid ${meta.icon}" style="color:${meta.c}"></i>
+            ${meta.label}
             ${a.note ? ` · ${a.note}` : ""}
           </div>
         </div>
@@ -1888,6 +2064,8 @@ function loadCityOnMap(cityKey) {
   if (allPts.length > 0) {
     const bounds = L.latLngBounds(allPts);
     map.flyToBounds(bounds, { padding: [40, 40], duration: 1.2, maxZoom: 15 });
+  } else {
+    map.flyTo(city.center, city.zoom, { duration: 1.2 });
   }
 
   $("#legend").innerHTML = daysToShow.map(({ day }) =>
@@ -1924,10 +2102,14 @@ const savedTab = localStorage.getItem("usaTrip.lastTab") || "ny";
 switchTab(TRIP[savedTab] ? savedTab : "ny", false);
 
 /* =========================================================
-   CHECKLIST — persisted
+   CHECKLIST — persisted (state lifted earlier in script)
 ========================================================= */
-const CHECK_KEY = "usaTrip.checklist";
-const checkState = JSON.parse(localStorage.getItem(CHECK_KEY) || "{}");
+function syncActivitiesForKey(key, done) {
+  if (!key) return;
+  $$(`.activity[data-checkkey="${key}"]`).forEach(el => {
+    el.classList.toggle("is-checked", done);
+  });
+}
 
 $$("#checklist li").forEach(li => {
   const key = li.dataset.key;
@@ -1939,6 +2121,7 @@ $$("#checklist li").forEach(li => {
     checkState[key] = cb.checked;
     li.classList.toggle("done", cb.checked);
     localStorage.setItem(CHECK_KEY, JSON.stringify(checkState));
+    syncActivitiesForKey(key, cb.checked);
   });
 });
 
