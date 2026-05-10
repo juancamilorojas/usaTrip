@@ -460,6 +460,35 @@
   }
   .activity.is-checked .badge.pending { display: none; }
 
+  /* drag-and-drop */
+  .drag-handle {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px;
+    color: var(--muted);
+    cursor: grab;
+    border-radius: 8px;
+    flex-shrink: 0;
+    border: 1px solid transparent;
+    touch-action: none;
+  }
+  .drag-handle:hover { color: var(--ink); background: var(--surface-2); border-color: var(--line); }
+  .drag-handle:active { cursor: grabbing; }
+  .sortable-ghost {
+    opacity: 0.4;
+    background: var(--bg-soft) !important;
+    border: 1px dashed var(--accent) !important;
+  }
+  .sortable-chosen { box-shadow: var(--shadow-2); }
+  .sortable-drag {
+    box-shadow: var(--shadow-2);
+    transform: rotate(0.5deg);
+  }
+  .day-body-inner.drop-target {
+    outline: 2px dashed rgba(255,90,60,0.35);
+    outline-offset: -6px;
+    border-radius: var(--radius-m);
+  }
+
   .tips {
     padding: 14px 16px;
     background: linear-gradient(135deg, rgba(255,90,60,.08), rgba(107,92,255,.06));
@@ -1138,6 +1167,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
 /* =========================================================
    TRIP DATA — single source of truth
@@ -1587,6 +1617,62 @@ const CHECK_KEY = "usaTrip.checklist";
 const checkState = JSON.parse(localStorage.getItem(CHECK_KEY) || "{}");
 function isCheckedKey(key) { return !!(key && checkState[key]); }
 
+/* =========================================================
+   ACTIVITY ORDER — drag-and-drop persistence
+========================================================= */
+const LAYOUT_KEY = "usaTrip.layout.v1";
+
+// stable ID per activity, embedded once at startup
+Object.keys(TRIP).forEach(cityKey => {
+  TRIP[cityKey].days.forEach((day, di) => {
+    day.activities.forEach((a, ai) => {
+      a._id = `${cityKey}|${di}|${ai}|${a.name}|${a.time}`;
+    });
+  });
+});
+
+function applySavedLayout() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LAYOUT_KEY) || "null"); } catch(_) {}
+  if (!saved) return;
+
+  Object.keys(TRIP).forEach(cityKey => {
+    const cityLayout = saved[cityKey];
+    if (!Array.isArray(cityLayout)) return;
+    const lookup = {};
+    TRIP[cityKey].days.forEach(d => d.activities.forEach(a => { lookup[a._id] = a; }));
+
+    const newDays = TRIP[cityKey].days.map(() => []);
+    const used = new Set();
+    cityLayout.forEach((ids, di) => {
+      if (di >= newDays.length || !Array.isArray(ids)) return;
+      ids.forEach(id => {
+        if (lookup[id] && !used.has(id)) {
+          newDays[di].push(lookup[id]);
+          used.add(id);
+        }
+      });
+    });
+    // any new activity (added in code since last save) goes back to its origin day
+    Object.keys(lookup).forEach(id => {
+      if (used.has(id)) return;
+      const origDi = Math.min(Number(id.split("|")[1]) || 0, newDays.length - 1);
+      newDays[origDi].push(lookup[id]);
+    });
+    TRIP[cityKey].days.forEach((d, di) => { d.activities = newDays[di]; });
+  });
+}
+
+function saveLayout() {
+  const layout = {};
+  Object.keys(TRIP).forEach(cityKey => {
+    layout[cityKey] = TRIP[cityKey].days.map(d => d.activities.map(a => a._id));
+  });
+  localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout));
+}
+
+applySavedLayout();
+
 const STATE = { city: "ny" };
 
 function showToast(msg) {
@@ -1636,7 +1722,7 @@ function renderActivity(a) {
   const classes = ["activity"];
   if (checked) classes.push("is-checked");
   return `
-    <div class="${classes.join(" ")}" data-lat="${a.coords[0]}" data-lng="${a.coords[1]}" data-name="${a.name}" ${a.mapSkip ? 'data-mapskip="1"' : ""} ${a.checkKey ? `data-checkkey="${a.checkKey}"` : ""}>
+    <div class="${classes.join(" ")}" data-actid="${a._id}" data-lat="${a.coords[0]}" data-lng="${a.coords[1]}" data-name="${a.name}" ${a.mapSkip ? 'data-mapskip="1"' : ""} ${a.checkKey ? `data-checkkey="${a.checkKey}"` : ""}>
       <div class="time">${a.time}</div>
       <div class="info">
         <b>${a.name}</b>
@@ -1651,6 +1737,9 @@ function renderActivity(a) {
         <a class="nav-btn" href="${gmapsUrl(a.coords)}" target="_blank" rel="noopener" title="Navigate in Google Maps" data-no-fly aria-label="Navigate">
           <i class="fa-solid fa-location-arrow"></i>
         </a>
+        <span class="drag-handle" title="Drag to reorder or move to another day" aria-label="Drag to reorder" data-no-fly>
+          <i class="fa-solid fa-grip-vertical"></i>
+        </span>
       </div>
     </div>
   `;
@@ -1703,7 +1792,7 @@ function renderDayCard(cityKey, city, day, i) {
       </button>
       <div class="day-body">
         <div>
-          <div class="day-body-inner">
+          <div class="day-body-inner" data-city="${cityKey}" data-day-idx="${i}">
             ${walkHtml}
             ${actsHtml}
             ${alertsHtml}
@@ -1720,6 +1809,9 @@ function renderTimeline(cityKey) {
   const host = $(`#timeline-${cityKey}`);
   if (!host || !city.days.length) return;
 
+  // capture currently open days so re-renders (e.g. after drag) keep state
+  const wasOpen = new Set($$(".day.open", host).map(el => Number(el.dataset.idx)));
+
   const f = FILTERS[cityKey];
   const pairs = (f === "all" || f == null || !city.days[Number(f)])
     ? city.days.map((d, i) => [d, i])
@@ -1727,6 +1819,12 @@ function renderTimeline(cityKey) {
 
   host.innerHTML = pairs.map(([day, idx]) => renderDayCard(cityKey, city, day, idx)).join("");
   host.classList.remove("fade-in"); void host.offsetWidth; host.classList.add("fade-in");
+
+  if (wasOpen.size) {
+    $$(".day", host).forEach(art => {
+      art.classList.toggle("open", wasOpen.has(Number(art.dataset.idx)));
+    });
+  }
 
   // accordion behavior + persist last open day
   $$(".day-head", host).forEach(btn => {
@@ -1755,9 +1853,62 @@ function renderTimeline(cityKey) {
     });
   });
 
+  // drag-and-drop: reorder within a day or move between days
+  if (window.Sortable) {
+    $$(".day-body-inner", host).forEach(inner => {
+      Sortable.create(inner, {
+        group: `usaTrip-${cityKey}`,
+        handle: ".drag-handle",
+        draggable: ".activity",
+        animation: 180,
+        ghostClass: "sortable-ghost",
+        chosenClass: "sortable-chosen",
+        dragClass: "sortable-drag",
+        forceFallback: true,
+        fallbackOnBody: true,
+        fallbackTolerance: 4,
+        onStart: (evt) => { evt.to.classList.add("drop-target"); },
+        onEnd: (evt) => {
+          $$(".day-body-inner", host).forEach(el => el.classList.remove("drop-target"));
+          handleActivityDrop(cityKey, evt);
+        }
+      });
+    });
+  }
+
   // places counter
   const cnt = $(`[data-count="${cityKey}"]`);
   if (cnt) cnt.textContent = city.days.reduce((s,d)=>s+d.activities.length,0);
+}
+
+function handleActivityDrop(cityKey, evt) {
+  const fromInner = evt.from;
+  const toInner   = evt.to;
+  const fromDay   = Number(fromInner.dataset.dayIdx);
+  const toDay     = Number(toInner.dataset.dayIdx);
+  if (Number.isNaN(fromDay) || Number.isNaN(toDay)) return;
+
+  // build a flat lookup across the whole city
+  const lookup = {};
+  TRIP[cityKey].days.forEach(d => d.activities.forEach(a => { lookup[a._id] = a; }));
+
+  // rebuild affected day arrays from current DOM order
+  const touched = fromDay === toDay ? [fromInner] : [fromInner, toInner];
+  touched.forEach(inner => {
+    const di = Number(inner.dataset.dayIdx);
+    const ids = $$(".activity", inner).map(el => el.dataset.actid);
+    TRIP[cityKey].days[di].activities = ids.map(id => lookup[id]).filter(Boolean);
+  });
+
+  saveLayout();
+
+  // refresh views (defer so Sortable's own DOM cleanup completes first)
+  setTimeout(() => {
+    renderTimeline(cityKey);
+    loadCityOnMap(cityKey);
+    renderQuickStats(cityKey);
+    renderContextWidget();
+  }, 0);
 }
 
 Object.keys(TRIP).forEach(renderTimeline);
